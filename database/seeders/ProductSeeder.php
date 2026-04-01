@@ -33,5 +33,35 @@ class ProductSeeder extends Seeder
             'price' => 2.00,
             'stock' => 30
         ]);
+        Product::create([
+            'name' => 'Grapes',
+            'description' => 'Sweet grapes',
+            'price' => 4.00,
+            'stock' => 15
+        ]);
+        Product::create([
+            'name' => 'Mango',
+            'description' => 'Juicy mango',
+            'price' => 5.00,
+            'stock' => 25
+        ]);
+        Product::create([
+            'name' => 'Pineapple',
+            'description' => 'Tropical pineapple',
+            'price' => 6.00,
+            'stock' => 12
+        ]);
+        Product::create([
+            'name' => 'Strawberry',
+            'description' => 'Fresh strawberries',
+            'price' => 3.00,
+            'stock' => 18
+        ]);
+        Product::create([
+            'name' => 'Watermelon',
+            'description' => 'Refreshing watermelon',
+            'price' => 7.00,
+            'stock' => 8
+        ]);
     }
 }

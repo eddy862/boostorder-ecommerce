@@ -1,44 +1,55 @@
 <template>
-  <div>
-    <h1>Product List</h1>
+  <div class="min-h-screen py-2">
+    <div class="max-w-5xl mx-auto px-4">
+      <div class="mb-8 flex justify-center">
+        <input type="text" v-model="search" placeholder="Search products..." @input="onSearchInput"
+          class="w-full max-w-md px-4 py-2 border border-orange-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition" />
+      </div>
 
-    <input type="text" v-model="search" placeholder="Search products..." @input="onSearchInput"
-      style="margin-bottom: 16px; padding: 6px; width: 100%; max-width: 400px;" />
+      <div v-if="products.length === 0"
+        class="flex justify-center items-center h-40 text-orange-400 text-lg font-semibold">
+        Loading...
+      </div>
 
-    <div v-if="products.length === 0">
-      Loading...
-    </div>
+      <div v-if="filteredProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div v-for="product in filteredProducts" :key="product.id" @click="showProduct(product)"
+          class="bg-white border border-orange-100 rounded-xl shadow hover:shadow-lg transition cursor-pointer flex flex-col items-center p-4 relative group">
 
-    <div style="display:flex; gap:12px;"  v-else>
-      <div v-for="product in filteredProducts" :key="product.id" @click="showProduct(product)"
-        style="cursor:pointer; border:1px solid #eee; margin-bottom:12px; padding:10px; border-radius:6px;">
-        <img :src="getImage(product.id)" alt="product image"
-          style="width:100%; max-width:200px; height:150px; object-fit:cover; border-radius:6px; margin-bottom:8px;" />
+          <img :src="getImage(product.id)" alt="product image"
+            class="w-full max-w-[180px] h-[140px] object-cover rounded-lg mb-3 border border-orange-100 group-hover:scale-105 transition" />
 
-        <h3>{{ product.name }}</h3>
-        <p>RM {{ product.price }}</p>
-        
-        <button :disabled="product.stock === 0" @click.stop="addToCart(product.id)">
-          {{ product.stock === 0 ? 'Out of Stock' : 'Add to Cart' }}
-        </button>
+          <h3 class="text-base font-semibold text-gray-800 mb-1 text-center line-clamp-2 min-h-[48px]">{{ product.name
+            }}</h3>
+          <p class="text-orange-500 font-bold text-lg mb-2">RM {{ product.price }}</p>
+
+          <button :disabled="product.stock === 0" @click.stop="addToCart(product.id)"
+            class="w-full py-2 rounded-lg font-semibold text-white transition
+              bg-orange-400 hover:bg-orange-500 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed">
+            {{ product.stock === 0 ? 'Out of Stock' : 'Add to Cart' }}
+          </button>
+        </div>
+      </div>
+
+      <div v-else-if="debouncedSearch" class="text-center text-gray-400 py-8 text-lg font-semibold">
+        No products found for "{{ debouncedSearch }}"
       </div>
 
       <!-- Product Detail Modal -->
-      <div v-if="selectedProduct" class="modal-overlay"
-        style="position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.3);z-index:1000;display:flex;align-items:center;justify-content:center;">
-        <div class="modal-content"
-          style="background:#fff;padding:24px 32px;border-radius:8px;min-width:300px;max-width:90vw;box-shadow:0 2px 16px rgba(0,0,0,0.15);position:relative;">
+      <div v-if="selectedProduct"
+        class="fixed top-0 left-0 w-screen h-screen bg-black bg-opacity-30 z-50 flex items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 min-w-[320px] max-w-[95vw] relative animate-fadeIn">
+
           <button @click="selectedProduct = null"
-            style="position:absolute;top:8px;right:12px;font-size:20px;background:none;border:none;cursor:pointer;">&times;</button>
+            class="absolute top-3 right-4 text-2xl text-gray-400 hover:text-orange-500 focus:outline-none">&times;</button>
 
           <img :src="getImage(selectedProduct.id)"
-            style="width:100%; height:200px; object-fit:cover; margin-bottom:12px;" />
+            class="w-full h-[200px] object-cover rounded-lg mb-4 border border-orange-100" />
 
-          <h2>{{ selectedProduct.name }}</h2>
-          <p><strong>Price:</strong> RM {{ selectedProduct.price }}</p>
-          <p><strong>Stock:</strong> {{ selectedProduct.stock }}</p>
-          <p><strong>Description:</strong></p>
-          <p>{{ selectedProduct.description || 'No description.' }}</p>
+          <h2 class="text-2xl font-bold text-orange-500 mb-2">{{ selectedProduct.name }}</h2>
+          <p class="text-lg font-semibold mb-1"><span class="text-gray-500">Price:</span> <span
+              class="text-orange-500">RM {{ selectedProduct.price }}</span></p>
+          <p class="mb-1"><span class="text-gray-500 font-medium">Stock:</span> {{ selectedProduct.stock }}</p>
+          <p class="text-gray-500">{{ selectedProduct.description || 'No description.' }}</p>
         </div>
       </div>
     </div>
