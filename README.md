@@ -233,6 +233,8 @@ Browse products → Add to cart
 Click checkout → Redirect to login → Login → Back to cart → Checkout
 ```
 
+So only registered users can create orders
+
 ### Order Creation
 
 ```
