@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 
 class OrderController extends Controller
@@ -44,14 +45,27 @@ class OrderController extends Controller
                 ], 400);
             }
 
+            $total = 0;
+            // Check stock availability
+            foreach ($cart as $productId => $item) {
+                $product = Product::findOrFail($productId);
+
+                if ($item['quantity'] > $product->stock) {
+                    return response()->json([
+                        'message' => "Not enough stock for product - {$product->name}, available: {$product->stock}, requested: {$item['quantity']}"
+                    ], 400);
+                }
+
+                // Reduce stock
+                $product->decrement('stock', $item['quantity']);
+            }
+
             // Create order
             $order = Order::create([
                 'user_id' => Auth::id(), 
                 'total_price' => 0,
                 'status' => 'pending'
             ]);
-
-            $total = 0;
 
             // Create order items
             foreach ($cart as $productId => $item) {

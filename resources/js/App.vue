@@ -3,18 +3,34 @@
     <!-- Navbar -->
     <div style="padding:10px; background:#eee;">
       <router-link to="/">Products</router-link> |
-      <router-link to="/cart">Cart</router-link> |
-      <router-link to="/orders">Order History</router-link>
+      <router-link to="/cart">
+        Cart
+        <span v-if="cartCount > 0" style="
+            background:red;
+            color:white;
+            border-radius:50%;
+            padding:2px 6px;
+            font-size:12px;
+            margin-left:5px;
+        ">
+          {{ cartCount }}
+        </span>
+      </router-link> |
+      <router-link to="/orders">Order History</router-link> 
 
-      <!-- NOT logged in -->
-      <span v-if="!user">
-        <a href="/login">Login</a>
-      </span>
+      <span style="float:right;">
+        <!-- NOT logged in -->
+        <span v-if="!user">
+          <a href="/login">Login</a> |
+        </span>
 
-      <!-- Logged in -->
-      <span v-else>
-        {{ user.email }}
-        <button @click="logout">Logout</button>
+        <!-- Logged in -->
+        <span v-else>
+          {{ user.email }}
+          <button @click="logout">Logout</button> 
+        </span>
+
+        <a v-if="!user" href="/register">Register</a>
       </span>
     </div>
 
@@ -29,12 +45,16 @@ axios.defaults.withCredentials = true
 export default {
   data() {
     return {
-      user: null
+      user: null,
+      cartCount: 0
     }
   },
 
   async mounted() {
-    this.fetchUser()
+    this.fetchUser(),
+      this.fetchCartCount()
+
+    window.addEventListener('cart-updated', this.fetchCartCount)
   },
 
   methods: {
@@ -45,6 +65,20 @@ export default {
       } catch (err) {
         this.user = null
       }
+    },
+
+    async fetchCartCount() {
+      const res = await axios.get('/api/cart')
+
+      const cart = res.data
+
+      let total = 0
+
+      Object.values(cart).forEach(item => {
+        total += item.quantity
+      })
+
+      this.cartCount = total
     },
 
     async logout() {

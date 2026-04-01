@@ -7,17 +7,25 @@
         </div>
 
         <div v-else>
-            <div v-for="item in cartItems" :key="item.id" style="border-bottom:1px solid #ccc; padding:10px;">
-                <h3>{{ item.name }}</h3>
-                <p>RM {{ item.price }}</p>
+            <div v-for="item in cartItems" :key="item.id"
+                style="display:flex; gap:12px; border-bottom:1px solid #ccc; padding:10px; align-items:center;">
+                <img :src="getImage(item.id)" alt="product"
+                    style="width:100px; height:80px; object-fit:cover; border-radius:6px;" />
 
-                <!-- Quantity Controls -->
-                <button @click="decrease(item)">-</button>
-                <span>{{ item.quantity }}</span>
-                <button @click="increase(item)">+</button>
+                <div style="flex:1;">
+                    <h3>{{ item.name }}</h3>
+                    <p>RM {{ item.price }}</p>
 
-                <!-- Remove -->
-                <button @click="remove(item.id)">Remove</button>
+                    <button @click="decrease(item)">-</button>
+                    <span>{{ item.quantity }}</span>
+                    <button @click="increase(item)">+</button>
+
+                    <button @click="remove(item)">Remove</button>
+                </div>
+
+                <p>
+                    Subtotal: RM {{ item.price * item.quantity }}
+                </p>
             </div>
 
             <h2>Total: RM {{ total }}</h2>
@@ -34,17 +42,23 @@ axios.defaults.withCredentials = true
 export default {
     data() {
         return {
-            cart: {}
+            cart: {},
+            increaseDebounceTimers: {},
+            decreaseDebounceTimers: {},
+            pendingQuantities: {}
         }
     },
 
     // computed = derived state
     computed: {
         cartItems() {
-            return Object.keys(this.cart).map(id => ({
-                id,
-                ...this.cart[id]
-            }))
+            return Object.keys(this.cart).map(id => {
+                let item = { id, ...this.cart[id] }
+                if (this.pendingQuantities && this.pendingQuantities[id] !== undefined) {
+                    return { ...item, quantity: this.pendingQuantities[id] }
+                }
+                return item
+            })
         },
 
         total() {
@@ -72,28 +86,67 @@ export default {
             this.cart = res.data
         },
 
-        async increase(item) {
-            await axios.post(`/api/cart/update/${item.id}`, {
-                quantity: item.quantity + 1
-            })
-            this.fetchCart()
+        increase(item) {
+            // Set the pending quantity to current or last pending
+            const current = this.pendingQuantities[item.id] !== undefined ? this.pendingQuantities[item.id] : item.quantity
+            this.pendingQuantities[item.id] = current + 1
+
+            if (this.increaseDebounceTimers[item.id]) {
+                clearTimeout(this.increaseDebounceTimers[item.id])
+            }
+            this.increaseDebounceTimers[item.id] = setTimeout(async () => {
+                const qty = this.pendingQuantities[item.id]
+                await axios.post(`/api/cart/update/${item.id}`, {
+                    quantity: qty
+                })
+                this.fetchCart()
+                this.increaseDebounceTimers[item.id] = null
+                setTimeout(() => {
+                    delete this.pendingQuantities[item.id];
+                }, 500); 
+                window.dispatchEvent(new Event('cart-updated'))
+            }, 400)
         },
 
-        async decrease(item) {
-            if (item.quantity <= 1) return
+        decrease(item) {
+            if (item.quantity <= 1 && (!this.pendingQuantities || this.pendingQuantities[item.id] <= 1)) return
 
-            await axios.post(`/api/cart/update/${item.id}`, {
-                quantity: item.quantity - 1
-            })
-            this.fetchCart()
+            // Set the pending quantity to current or last pending
+            const current = this.pendingQuantities[item.id] !== undefined ? this.pendingQuantities[item.id] : item.quantity
+            const next = current - 1
+            if (next < 1) return
+            this.pendingQuantities[item.id] = next
+
+            if (this.decreaseDebounceTimers[item.id]) {
+                clearTimeout(this.decreaseDebounceTimers[item.id])
+            }
+            this.decreaseDebounceTimers[item.id] = setTimeout(async () => {
+                const qty = this.pendingQuantities[item.id]
+                await axios.post(`/api/cart/update/${item.id}`, {
+                    quantity: qty
+                })
+                this.fetchCart()
+                this.decreaseDebounceTimers[item.id] = null
+                setTimeout(() => {
+                    delete this.pendingQuantities[item.id];
+                }, 500); 
+                window.dispatchEvent(new Event('cart-updated'))
+            }, 400)
         },
 
-        async remove(id) {
-            await axios.post(`/api/cart/remove/${id}`)
+        async remove(item) {
+            if (!confirm('Are you sure you want to remove ' + item.name + ' from cart?')) {
+                return
+            }
+            await axios.post(`/api/cart/remove/${item.id}`)
             this.fetchCart()
         },
 
         async checkout() {
+            if (!confirm('Proceed to checkout?')) {
+                return
+            }
+
             try {
                 const res = await axios.post('/api/checkout')
                 console.log(res.data)
@@ -108,9 +161,13 @@ export default {
                     window.location.href = '/login?redirect=/cart?checkout=1'
                 } else {
                     console.error(err)
-                    alert('Error placing order')
+                    alert('Checkout failed: ' + (err.response?.data?.message || err.message))
                 }
             }
+        },
+
+        getImage(id) {
+            return `https://picsum.photos/seed/${id}/200/150`
         }
     }
 }

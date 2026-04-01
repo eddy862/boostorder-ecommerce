@@ -7,7 +7,18 @@
         </div>
 
         <div v-else>
-            <div v-for="order in orders" :key="order.id" style="border:1px solid #ccc; margin:10px; padding:10px;">
+            <div style="margin-bottom: 16px;">
+                <button @click="selectedStatus = 'all'">All</button>
+                <button @click="selectedStatus = 'pending'">Pending</button>
+                <button @click="selectedStatus = 'completed'">Completed</button>
+                <button @click="selectedStatus = 'cancelled'">Cancelled</button>
+            </div>
+
+            <p v-if="filteredOrders.length === 0">
+                No orders found for status "{{ selectedStatus }}"
+            </p>
+
+            <div v-else v-for="order in filteredOrders" :key="order.id" style="border:1px solid #ccc; margin:10px; padding:10px;">
 
                 <h3>Order #{{ order.id }}</h3>
                 <p>Status: {{ order.status }}</p>
@@ -21,12 +32,22 @@
                 </select>
 
                 <h4>Items:</h4>
-                <ul>
-                    <li v-for="item in order.items" :key="item.id">
-                        {{ item.product.name }}
-                        (x{{ item.quantity }}) - RM {{ item.price }}
-                    </li>
-                </ul>
+                <div>
+                    <div v-for="item in order.items" :key="item.id"
+                        style="display:flex; gap:12px; margin-bottom:10px; align-items:center;">
+                        <img :src="getImage(item.product.id)" alt="product"
+                            style="width:80px; height:60px; object-fit:cover; border-radius:6px;" />
+
+                        <div>
+                            <p style="margin:0;"><strong>{{ item.product.name }}</strong></p>
+                            <p style="margin:0;">Qty: x{{ item.quantity }}</p>
+                            <p style="margin:0;">RM {{ item.price }}</p>
+                            <p style="margin:0;">
+                                Subtotal: RM {{ item.price * item.quantity }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
 
             </div>
         </div>
@@ -39,7 +60,17 @@ import axios from 'axios'
 export default {
     data() {
         return {
-            orders: []
+            orders: [],
+            selectedStatus: 'all'
+        }
+    },
+
+    computed: {
+        filteredOrders() {
+            if (this.selectedStatus === 'all') {
+                return this.orders
+            }
+            return this.orders.filter(o => o.status === this.selectedStatus)
         }
     },
 
@@ -61,6 +92,10 @@ export default {
             console.log(res.data)
 
             alert('Status updated')
+        },
+
+        getImage(id) {
+            return `https://picsum.photos/seed/${id}/200/150`
         }
     }
 }
