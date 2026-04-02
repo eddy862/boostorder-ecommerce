@@ -39,7 +39,7 @@
 
     <section v-if="filteredProducts.length > 0" class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
       <div v-for="product in filteredProducts" :key="product.id" @click="showProduct(product)"
-        class="group relative cursor-pointer overflow-hidden rounded-[1.75rem] border border-orange-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-100">
+        class="group relative overflow-hidden rounded-[1.75rem] border border-orange-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-100">
         <div class="absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-bold"
           :class="product.stock > 0 ? 'bg-orange-100 text-orange-500' : 'bg-gray-100 text-gray-400'">
           {{ product.stock > 0 ? `${product.stock} left` : 'Out of stock' }}
@@ -101,22 +101,6 @@
       class="rounded-[1.75rem] border border-orange-100 bg-white py-12 text-center text-lg font-semibold text-gray-400 shadow-sm">
       No products found for "{{ debouncedSearch }}"
     </section>
-
-    <div v-if="selectedProduct"
-      class="fixed left-0 top-0 z-50 flex h-screen w-screen items-center justify-center bg-black/40 px-4">
-      <div class="relative min-w-[320px] max-w-[95vw] rounded-[2rem] bg-white p-8 shadow-2xl">
-        <button @click="selectedProduct = null"
-          class="absolute right-5 top-4 text-2xl text-gray-400 hover:text-orange-500 focus:outline-none">&times;</button>
-
-        <img :src="getImage(selectedProduct.id)"
-          class="mb-5 h-[220px] w-full rounded-2xl border border-orange-100 object-cover" />
-
-        <h2 class="mb-2 text-3xl font-black text-gray-800">{{ selectedProduct.name }}</h2>
-        <p class="mb-3 text-2xl font-black text-orange-500">RM {{ formatPrice(selectedProduct.price) }}</p>
-        <p class="mb-2 text-sm font-medium text-gray-500">Stock available: {{ selectedProduct.stock }}</p>
-        <p class="leading-7 text-gray-500">{{ selectedProduct.description || 'No description.' }}</p>
-      </div>
-    </div>
   </div>
 </template>
 
@@ -131,7 +115,6 @@ export default {
       search: '',
       searchTimeout: null,
       debouncedSearch: '',
-      selectedProduct: null,
       quantities: {}
     }
   },
@@ -199,10 +182,6 @@ export default {
           alert(error.response?.data?.message || 'An error occurred while processing your order.')
         }
       }
-    },
-
-    showProduct(product) {
-      this.selectedProduct = product
     },
 
     increaseQuantity(product) {
