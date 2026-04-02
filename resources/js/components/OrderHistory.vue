@@ -1,130 +1,161 @@
 <template>
-    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow p-6 mt-6">
-        <h1 class="text-2xl font-bold text-orange-500 mb-6">My Orders</h1>
-
-        <div v-if="orders.length === 0" class="text-center text-gray-400 py-16 text-lg font-semibold">
-            <svg class="mx-auto mb-4 w-16 h-16 text-orange-200" fill="none" stroke="currentColor" stroke-width="1.5"
-                viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m13-9l2 9m-5-9V6a2 2 0 10-4 0v4" />
-            </svg>
-            No orders yet
+  <div class="space-y-6">
+    <section class="rounded-[2rem] bg-gradient-to-br from-orange-400 via-orange-300 to-amber-200 px-6 py-8 text-white shadow-xl shadow-orange-200 sm:px-8">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.24em] text-orange-100">Order History</p>
+          <h1 class="mt-2 text-3xl font-black sm:text-4xl">Track every order from one timeline.</h1>
+          <p class="mt-3 max-w-2xl text-sm leading-7 text-orange-50">
+            Review pending, completed, and cancelled orders and keep tabs on what you've already purchased.
+          </p>
         </div>
+        <div class="rounded-3xl bg-white/20 px-5 py-4 backdrop-blur">
+          <p class="text-xs font-semibold uppercase tracking-[0.2em] text-orange-100">Orders</p>
+          <p class="mt-2 text-3xl font-black">{{ orders.length }}</p>
+          <p class="text-sm text-orange-50">in your history</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-[1.75rem] border border-orange-100 bg-white p-6 shadow-sm">
+      <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-orange-400">My Orders</p>
+          <h2 class="mt-1 text-2xl font-black text-gray-800">Status overview</h2>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <button @click="selectedStatus = 'all'"
+            :class="selectedStatus === 'all' ? 'bg-orange-400 text-white' : 'bg-orange-50 text-orange-500'"
+            class="rounded-xl border border-orange-200 px-4 py-2 font-semibold transition">All</button>
+          <button @click="selectedStatus = 'pending'"
+            :class="selectedStatus === 'pending' ? 'bg-orange-400 text-white' : 'bg-orange-50 text-orange-500'"
+            class="rounded-xl border border-orange-200 px-4 py-2 font-semibold transition">Pending</button>
+          <button @click="selectedStatus = 'completed'"
+            :class="selectedStatus === 'completed' ? 'bg-orange-400 text-white' : 'bg-orange-50 text-orange-500'"
+            class="rounded-xl border border-orange-200 px-4 py-2 font-semibold transition">Completed</button>
+          <button @click="selectedStatus = 'cancelled'"
+            :class="selectedStatus === 'cancelled' ? 'bg-orange-400 text-white' : 'bg-orange-50 text-orange-500'"
+            class="rounded-xl border border-orange-200 px-4 py-2 font-semibold transition">Cancelled</button>
+        </div>
+      </div>
+
+      <div v-if="orders.length === 0" class="py-16 text-center text-lg font-semibold text-gray-400">
+        <svg class="mx-auto mb-4 h-16 w-16 text-orange-200" fill="none" stroke="currentColor" stroke-width="1.5"
+          viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round"
+            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2 9m13-9l2 9m-5-9V6a2 2 0 10-4 0v4" />
+        </svg>
+        No orders yet
+      </div>
+
+      <div v-else>
+        <p v-if="filteredOrders.length === 0" class="py-8 text-center text-base font-medium text-gray-400">
+          No orders found for status "{{ selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1) }}"
+        </p>
 
         <div v-else>
-            <div class="mb-6 flex flex-wrap gap-2">
-                <button @click="selectedStatus = 'all'"
-                    :class="selectedStatus === 'all' ? 'bg-orange-400 text-white' : 'bg-orange-50 text-orange-500'"
-                    class="px-4 py-2 rounded-lg font-semibold border border-orange-200 transition">All</button>
-                <button @click="selectedStatus = 'pending'"
-                    :class="selectedStatus === 'pending' ? 'bg-orange-400 text-white' : 'bg-orange-50 text-orange-500'"
-                    class="px-4 py-2 rounded-lg font-semibold border border-orange-200 transition">Pending</button>
-                <button @click="selectedStatus = 'completed'"
-                    :class="selectedStatus === 'completed' ? 'bg-orange-400 text-white' : 'bg-orange-50 text-orange-500'"
-                    class="px-4 py-2 rounded-lg font-semibold border border-orange-200 transition">Completed</button>
-                <button @click="selectedStatus = 'cancelled'"
-                    :class="selectedStatus === 'cancelled' ? 'bg-orange-400 text-white' : 'bg-orange-50 text-orange-500'"
-                    class="px-4 py-2 rounded-lg font-semibold border border-orange-200 transition">Cancelled</button>
+          <div v-for="order in filteredOrders" :key="order.id"
+            class="mb-6 flex flex-col rounded-[1.5rem] border border-orange-100 bg-orange-50/40 p-5 shadow-sm">
+            <div class="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.18em] text-orange-400">Order</p>
+                <h3 class="text-xl font-black text-gray-800">#{{ order.id }}</h3>
+              </div>
+              <span class="rounded-full px-3 py-1 text-xs font-bold" :class="{
+                'bg-orange-100 text-orange-500': order.status === 'pending',
+                'bg-green-100 text-green-600': order.status === 'completed',
+                'bg-red-100 text-red-500': order.status === 'cancelled'
+              }">
+                {{ order.status.charAt(0).toUpperCase() + order.status.slice(1) }}
+              </span>
             </div>
 
-            <p v-if="filteredOrders.length === 0" class="text-center text-gray-400 py-8 text-base font-medium">
-                No orders found for status "{{ selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1) }}"
-            </p>
-
-            <div v-else>
-                <div v-for="order in filteredOrders" :key="order.id"
-                    class="border border-orange-100 rounded-lg p-5 mb-6 shadow-sm flex flex-col">
-                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-2 gap-2">
-                        <h3 class="font-semibold text-lg text-gray-800">Order #{{ order.id }}</h3>
-                        <span class="px-3 py-1 rounded-full text-xs font-bold" :class="{
-                            'bg-orange-100 text-orange-500': order.status === 'pending',
-                            'bg-green-100 text-green-600': order.status === 'completed',
-                            'bg-red-100 text-red-500': order.status === 'cancelled'
-                        }">
-                            {{ order.status.charAt(0).toUpperCase() + order.status.slice(1) }}
-                        </span>
-                    </div>
-                    <div class="mb-2 flex items-center justify-between gap-3">
-
-                    </div>
-                    <div>
-                        <h4 class="font-semibold text-gray-700 mb-2">Items:</h4>
-                        <div>
-                            <div v-for="item in order.items" :key="item.id" class="flex gap-4 items-center mb-3">
-                                <img :src="getImage(item.product.id)" alt="product"
-                                    class="w-[80px] h-[60px] object-cover rounded-lg border border-orange-100" />
-                                <div>
-                                    <p class="font-semibold text-gray-800 mb-0.5">{{ item.product.name }}</p>
-                                    <p class="text-gray-500 text-sm mb-0.5">Qty: x{{ item.quantity }}</p>
-                                    <p class="text-orange-500 font-bold text-sm mb-0.5">RM {{ item.price }}</p>
-                                    <p class="text-gray-500 text-xs">Subtotal: RM {{ item.price * item.quantity }}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex items-center mt-4" :class='{"justify-between": order.status === "pending", "justify-end": order.status !== "pending"}'>
-                        <div>
-                            <span class="text-gray-500 text-base font-medium">Total:&nbsp;</span>
-                            <span class="text-orange-500 font-bold text-lg">RM {{ order.total_price }}</span>
-                        </div>
-                        <button v-if="order.status === 'pending'" @click="cancelOrder(order)"
-                            class="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-500 transition hover:bg-red-100">
-                            Cancel Order
-                        </button>
-                    </div>
+            <div>
+              <h4 class="mb-3 font-semibold uppercase tracking-[0.18em] text-orange-400">Items</h4>
+              <div>
+                <div v-for="item in order.items" :key="item.id"
+                  class="mb-3 flex items-center gap-4 rounded-2xl bg-white px-4 py-3 last:mb-0">
+                  <img :src="getImage(item.product.id)" alt="product"
+                    class="h-[60px] w-[80px] rounded-lg border border-orange-100 object-cover" />
+                  <div>
+                    <p class="mb-0.5 font-semibold text-gray-800">{{ item.product.name }}</p>
+                    <p class="mb-0.5 text-sm text-gray-500">Qty: x{{ item.quantity }}</p>
+                    <p class="mb-0.5 text-sm font-bold text-orange-500">RM {{ formatPrice(item.price) }}</p>
+                    <p class="text-xs text-gray-500">Subtotal: RM {{ formatPrice(item.price * item.quantity) }}</p>
+                  </div>
                 </div>
+              </div>
             </div>
+
+            <div class="mt-5 flex items-center rounded-2xl border border-orange-100 bg-white px-4 py-4"
+              :class='{"justify-between": order.status === "pending", "justify-end": order.status !== "pending"}'>
+              <div class="text-base font-medium text-gray-500">
+                Total:&nbsp;
+                <span class="text-lg font-black text-orange-500">RM {{ formatPrice(order.total_price) }}</span>
+              </div>
+              <button v-if="order.status === 'pending'" @click="cancelOrder(order)"
+                class="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm font-semibold text-red-500 transition hover:bg-red-100">
+                Cancel Order
+              </button>
+            </div>
+          </div>
         </div>
-    </div>
+      </div>
+    </section>
+  </div>
 </template>
 
 <script>
 import axios from 'axios'
 
 export default {
-    data() {
-        return {
-            orders: [],
-            selectedStatus: 'all'
-        }
-    },
-
-    computed: {
-        filteredOrders() {
-            if (this.selectedStatus === 'all') {
-                return this.orders
-            }
-            return this.orders.filter(o => o.status === this.selectedStatus)
-        }
-    },
-
-    mounted() {
-        this.fetchOrders()
-    },
-
-    methods: {
-        async fetchOrders() {
-            const res = await axios.get('/api/orders')
-            console.log(res.data)
-            this.orders = res.data
-        },
-
-        async cancelOrder(order) {
-            if (!confirm(`Cancel Order #${order.id}?`)) {
-                return
-            }
-
-            const res = await axios.post(`/api/orders/${order.id}/status`, {
-                status: 'cancelled'
-            })
-
-            order.status = res.data.order.status
-            alert('Order cancelled')
-        },
-
-        getImage(id) {
-            return `https://picsum.photos/seed/${id}/200/150`
-        }
+  data() {
+    return {
+      orders: [],
+      selectedStatus: 'all'
     }
+  },
+
+  computed: {
+    filteredOrders() {
+      if (this.selectedStatus === 'all') {
+        return this.orders
+      }
+      return this.orders.filter(o => o.status === this.selectedStatus)
+    }
+  },
+
+  mounted() {
+    this.fetchOrders()
+  },
+
+  methods: {
+    async fetchOrders() {
+      const res = await axios.get('/api/orders')
+      this.orders = res.data
+    },
+
+    async cancelOrder(order) {
+      if (!confirm(`Cancel Order #${order.id}?`)) {
+        return
+      }
+
+      const res = await axios.post(`/api/orders/${order.id}/status`, {
+        status: 'cancelled'
+      })
+
+      order.status = res.data.order.status
+      alert('Order cancelled')
+    },
+
+    getImage(id) {
+      return `https://picsum.photos/seed/${id}/200/150`
+    },
+
+    formatPrice(price) {
+      return Number(price).toFixed(2)
+    }
+  }
 }
 </script>

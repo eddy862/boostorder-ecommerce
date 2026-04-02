@@ -58,7 +58,7 @@
         </div>
 
         <a
-            href="{{ url('/auth/google') }}"
+            href="{{ url('/auth/google') . (request('redirect') ? '?redirect=' . urlencode(request('redirect')) : '') }}"
             class="flex w-full items-center justify-center gap-3 rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-orange-100 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"
         >
             <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="20" height="20" viewBox="0 0 48 48">

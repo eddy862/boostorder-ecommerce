@@ -7,6 +7,13 @@ use App\Models\OrderItem;
 
 class Product extends Model
 {
+    protected $fillable = [
+        'name',
+        'description',
+        'price',
+        'stock',
+    ];
+
     public function orderItems()
     {
         return $this->hasMany(OrderItem::class); // returns all order items that include this product

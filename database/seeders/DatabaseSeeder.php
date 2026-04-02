@@ -22,16 +22,7 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        User::create(
-        ['email' => 'admin@example.com'],
-        [
-            'name' => 'Admin User',
-            'password' => Hash::make('password'),
-            'role' => 'admin',
-            'email_verified_at' => now(), 
-        ]
-    );
-
         $this->call([ProductSeeder::class]);
+        $this->call([AdminUserSeeder::class]);
     }
 }

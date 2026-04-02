@@ -1,89 +1,120 @@
 <template>
-  <div class="min-h-screen py-2">
-    <div class="max-w-5xl mx-auto px-4">
-      <div class="mb-8 flex justify-center">
-        <input type="text" v-model="search" placeholder="Search products..." @input="onSearchInput"
-          class="w-full max-w-md px-4 py-2 border border-orange-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition" />
+  <div class="space-y-8 py-2">
+    <section class="overflow-hidden rounded-[2rem] bg-gradient-to-br from-orange-400 via-orange-300 to-amber-200 px-6 py-8 text-white shadow-xl shadow-orange-200 sm:px-8">
+      <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+        <div class="max-w-2xl">
+          <p class="text-sm font-semibold uppercase tracking-[0.26em] text-orange-100">Daily Picks</p>
+          <h1 class="mt-3 text-3xl font-black leading-tight sm:text-5xl">Find something fresh for your cart today.</h1>
+          <p class="mt-4 text-sm leading-7 text-orange-50 sm:text-base">
+            Browse the catalog, adjust quantity in one tap, and either buy instantly or save products for later.
+          </p>
+        </div>
+
+        <div class="rounded-3xl bg-white/20 px-5 py-4 backdrop-blur">
+          <p class="text-xs font-semibold uppercase tracking-[0.22em] text-orange-100">Catalog Size</p>
+          <p class="mt-2 text-3xl font-black">{{ filteredProducts.length }}</p>
+          <p class="text-sm text-orange-50">{{ debouncedSearch ? 'matching products' : 'available products' }}</p>
+        </div>
       </div>
+    </section>
 
-      <div v-if="products.length === 0"
-        class="flex justify-center items-center h-40 text-orange-400 text-lg font-semibold">
-        Loading...
+    <section class="rounded-[1.75rem] border border-orange-100 bg-white p-5 shadow-sm sm:p-6">
+      <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.22em] text-orange-400">Search Products</p>
+          <h2 class="mt-1 text-2xl font-black text-gray-800">Browse the storefront</h2>
+        </div>
+
+        <div class="w-full md:max-w-md">
+          <input type="text" v-model="search" placeholder="Search products..." @input="onSearchInput"
+            class="w-full rounded-2xl border border-orange-200 bg-orange-50/50 px-4 py-3 shadow-sm transition focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-300" />
+        </div>
       </div>
+    </section>
 
-      <div v-if="filteredProducts.length > 0"
-        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        <div v-for="product in filteredProducts" :key="product.id" @click="showProduct(product)"
-          class="bg-white border border-orange-100 rounded-xl shadow hover:shadow-lg transition cursor-pointer flex flex-col items-center p-4 relative group">
+    <section v-if="products.length === 0"
+      class="flex h-40 items-center justify-center rounded-[1.75rem] border border-orange-100 bg-white text-lg font-semibold text-orange-400 shadow-sm">
+      Loading...
+    </section>
 
-          <img :src="getImage(product.id)" alt="product image"
-            class="w-full max-w-[180px] h-[140px] object-cover rounded-lg mb-3 border border-orange-100 group-hover:scale-105 transition" />
+    <section v-if="filteredProducts.length > 0" class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
+      <div v-for="product in filteredProducts" :key="product.id" @click="showProduct(product)"
+        class="group relative cursor-pointer overflow-hidden rounded-[1.75rem] border border-orange-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-100">
+        <div class="absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-bold"
+          :class="product.stock > 0 ? 'bg-orange-100 text-orange-500' : 'bg-gray-100 text-gray-400'">
+          {{ product.stock > 0 ? `${product.stock} left` : 'Out of stock' }}
+        </div>
 
-          <h3 class="text-base font-semibold text-gray-800 mb-1 text-center line-clamp-2 min-h-[48px]">{{ product.name
-          }}</h3>
-          <p class="text-orange-500 font-bold text-lg mb-2">RM {{ product.price }}</p>
+        <img :src="getImage(product.id)" alt="product image"
+          class="mb-4 h-[180px] w-full rounded-2xl border border-orange-100 object-cover transition " />
 
-          <div class="mb-3 flex items-center justify-between w-full rounded-lg border border-orange-200 px-3 py-2">
-            <span class="text-sm font-medium text-gray-600">Qty</span>
-            <div class="flex items-center gap-2">
-              <button
-                @click.stop="decreaseQuantity(product)"
-                :disabled="product.stock === 0 || getSelectedQuantity(product) <= 1"
-                class="flex h-8 w-8 items-center justify-center rounded-full border border-orange-300 bg-white text-orange-500 transition hover:bg-orange-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-300"
-              >
-                -
-              </button>
+        <div class="mb-4">
+          <h3 class="min-h-[56px] line-clamp-2 text-xl font-black leading-7 text-gray-800">{{ product.name }}</h3>
+          <p class="mt-2 line-clamp-2 text-sm leading-6 text-gray-500">
+            {{ product.description || 'Fresh pick ready for your next checkout.' }}
+          </p>
+          <p class="mt-3 text-2xl font-black text-orange-500">RM {{ formatPrice(product.price) }}</p>
+        </div>
 
-              <span class="min-w-8 text-center font-semibold text-gray-700">
-                {{ getSelectedQuantity(product) }}
-              </span>
-
-              <button
-                @click.stop="increaseQuantity(product)"
-                :disabled="product.stock === 0 || getSelectedQuantity(product) >= product.stock"
-                class="flex h-8 w-8 items-center justify-center rounded-full border border-orange-300 bg-white text-orange-500 transition hover:bg-orange-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-300"
-              >
-                +
-              </button>
-            </div>
+        <div class="mb-4 flex items-center justify-between rounded-2xl border border-orange-100 bg-orange-50/60 px-4 py-3">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.18em] text-orange-400">Quantity</p>
           </div>
-
-          <div class="flex w-full flex-col gap-2">
-            <button :disabled="product.stock === 0" @click.stop="buyNow(product)"
-              class="w-full py-2 rounded-lg font-semibold text-orange-500 transition border border-orange-300 bg-orange-50 hover:bg-orange-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed">
-              {{ product.stock === 0 ? 'Out of Stock' : 'Buy Now' }}
+          <div class="flex items-center gap-2 rounded-full bg-white px-2 py-1 shadow-sm">
+            <button
+              @click.stop="decreaseQuantity(product)"
+              :disabled="product.stock === 0 || getSelectedQuantity(product) <= 1"
+              class="flex h-9 w-9 items-center justify-center rounded-full border border-orange-200 bg-white text-orange-500 transition hover:bg-orange-50 disabled:cursor-not-allowed disabled:border-gray-100 disabled:text-gray-300"
+            >
+              -
             </button>
 
-            <button :disabled="product.stock === 0" @click.stop="addToCart(product)"
-              class="w-full py-2 rounded-lg font-semibold text-white transition
-                bg-orange-400 hover:bg-orange-500 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed">
-              {{ product.stock === 0 ? 'Out of Stock' : 'Add to Cart' }}
+            <span class="min-w-10 text-center text-base font-black text-gray-700">
+              {{ getSelectedQuantity(product) }}
+            </span>
+
+            <button
+              @click.stop="increaseQuantity(product)"
+              :disabled="product.stock === 0 || getSelectedQuantity(product) >= product.stock"
+              class="flex h-9 w-9 items-center justify-center rounded-full border border-orange-200 bg-white text-orange-500 transition hover:bg-orange-50 disabled:cursor-not-allowed disabled:border-gray-100 disabled:text-gray-300"
+            >
+              +
             </button>
           </div>
         </div>
-      </div>
 
-      <div v-else-if="debouncedSearch" class="text-center text-gray-400 py-8 text-lg font-semibold">
-        No products found for "{{ debouncedSearch }}"
-      </div>
+        <div class="grid gap-2 sm:grid-cols-2">
+          <button :disabled="product.stock === 0" @click.stop="buyNow(product)"
+            class="w-full rounded-xl border border-orange-300 bg-orange-50 py-3 font-semibold text-orange-500 transition hover:bg-orange-100 disabled:cursor-not-allowed disabled:border-gray-200 disabled:bg-gray-100 disabled:text-gray-400">
+            {{ product.stock === 0 ? 'Out of Stock' : 'Buy Now' }}
+          </button>
 
-      <!-- Product Detail Modal -->
-      <div v-if="selectedProduct"
-        class="fixed top-0 left-0 w-screen h-screen bg-black bg-opacity-30 z-50 flex items-center justify-center">
-        <div class="bg-white rounded-2xl shadow-2xl p-8 min-w-[320px] max-w-[95vw] relative animate-fadeIn">
-
-          <button @click="selectedProduct = null"
-            class="absolute top-3 right-4 text-2xl text-gray-400 hover:text-orange-500 focus:outline-none">&times;</button>
-
-          <img :src="getImage(selectedProduct.id)"
-            class="w-full h-[200px] object-cover rounded-lg mb-4 border border-orange-100" />
-
-          <h2 class="text-2xl font-bold text-orange-500 mb-2">{{ selectedProduct.name }}</h2>
-          <p class="text-lg font-semibold mb-1"><span class="text-gray-500">Price:</span> <span
-              class="text-orange-500">RM {{ selectedProduct.price }}</span></p>
-          <p class="mb-1"><span class="text-gray-500 font-medium">Stock:</span> {{ selectedProduct.stock }}</p>
-          <p class="text-gray-500">{{ selectedProduct.description || 'No description.' }}</p>
+          <button :disabled="product.stock === 0" @click.stop="addToCart(product)"
+            class="w-full rounded-xl bg-orange-400 py-3 font-semibold text-white transition hover:bg-orange-500 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:text-gray-500">
+            {{ product.stock === 0 ? 'Out of Stock' : 'Add to Cart' }}
+          </button>
         </div>
+      </div>
+    </section>
+
+    <section v-else-if="debouncedSearch"
+      class="rounded-[1.75rem] border border-orange-100 bg-white py-12 text-center text-lg font-semibold text-gray-400 shadow-sm">
+      No products found for "{{ debouncedSearch }}"
+    </section>
+
+    <div v-if="selectedProduct"
+      class="fixed left-0 top-0 z-50 flex h-screen w-screen items-center justify-center bg-black/40 px-4">
+      <div class="relative min-w-[320px] max-w-[95vw] rounded-[2rem] bg-white p-8 shadow-2xl">
+        <button @click="selectedProduct = null"
+          class="absolute right-5 top-4 text-2xl text-gray-400 hover:text-orange-500 focus:outline-none">&times;</button>
+
+        <img :src="getImage(selectedProduct.id)"
+          class="mb-5 h-[220px] w-full rounded-2xl border border-orange-100 object-cover" />
+
+        <h2 class="mb-2 text-3xl font-black text-gray-800">{{ selectedProduct.name }}</h2>
+        <p class="mb-3 text-2xl font-black text-orange-500">RM {{ formatPrice(selectedProduct.price) }}</p>
+        <p class="mb-2 text-sm font-medium text-gray-500">Stock available: {{ selectedProduct.stock }}</p>
+        <p class="leading-7 text-gray-500">{{ selectedProduct.description || 'No description.' }}</p>
       </div>
     </div>
   </div>
@@ -108,7 +139,7 @@ export default {
   mounted() {
     this.fetchProducts()
 
-    if (this.$route.query['buy-now']) {
+    if (this.$route.query['buy-now'] && this.$route.query['quantity'] && this.$route.query['name']) {
       this.buyNow()
       this.$router.replace({ query: {} })
     }
@@ -118,7 +149,6 @@ export default {
     async fetchProducts() {
       try {
         const response = await axios.get('/api/products')
-        console.log(response.data)
         this.products = response.data
         this.quantities = response.data.reduce((acc, product) => {
           acc[product.id] = 1
@@ -133,15 +163,14 @@ export default {
       if (this.searchTimeout) clearTimeout(this.searchTimeout)
       this.searchTimeout = setTimeout(() => {
         this.debouncedSearch = this.search
-      }, 400) // 400ms debounce
+      }, 400)
     },
 
     async addToCart(product) {
       const quantity = Number(this.getSelectedQuantity(product))
 
       try {
-        const response = await axios.post(`/api/cart/add/${product.id}/${quantity}`)
-        console.log(response.data)
+        await axios.post(`/api/cart/add/${product.id}/${quantity}`)
         window.dispatchEvent(new Event('cart-updated'))
       } catch (error) {
         console.error(error)
@@ -159,18 +188,15 @@ export default {
 
       try {
         const res = await axios.post(`/api/checkout/buy-now/${productId}/${quantity}`)
-        console.log(res.data)
         alert('Order placed! Order id: ' + res.data.order.id)
         this.fetchProducts()
       } catch (error) {
         console.error(error)
         if (error.response && error.response.status === 401) {
-          // redirect to login then redirect back to product page with buy-now intent
           const redirectUrl = encodeURIComponent(`/products?buy-now=${productId}&quantity=${quantity}&name=${productName}`)
           window.location.href = `/login?redirect=${redirectUrl}`
         } else {
           alert(error.response?.data?.message || 'An error occurred while processing your order.')
-          console.error('Buy Now error details:', error.response?.data || error)
         }
       }
     },
@@ -197,6 +223,10 @@ export default {
 
     getImage(id) {
       return `https://picsum.photos/seed/${id}/300/200`
+    },
+
+    formatPrice(price) {
+      return Number(price).toFixed(2)
     },
 
     getSelectedQuantity(product) {

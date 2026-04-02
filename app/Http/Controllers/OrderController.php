@@ -20,12 +20,22 @@ class OrderController extends Controller
         return response()->json($orders);
     }
 
+    public function adminIndex()
+    {
+        $orders = Order::with(['user', 'items.product']) // eager load user, order items and their associated products
+            ->latest()
+            ->get();
+
+        return response()->json($orders);
+    }
+
     public function updateStatus(Request $request, $id)
     {
-        $order = Order::where('user_id', Auth::id())->findOrFail($id);
         $user = Auth::user();
-
         $newStatus = $request->status;
+        $order = $user->isAdmin()
+            ? Order::findOrFail($id)
+            : Order::where('user_id', Auth::id())->findOrFail($id);
 
         // user
         if (!$user->isAdmin()) {
@@ -46,10 +56,15 @@ class OrderController extends Controller
 
         // admin 
         if ($user->isAdmin()) {
-            // Optional: restrict invalid transitions
-            if ($order->status === 'completed') {
+            if ($newStatus !== 'completed') {
                 return response()->json([
-                    'message' => 'Completed order cannot be changed'
+                    'message' => 'Admin can only complete pending orders'
+                ], 403);
+            }
+
+            if ($order->status !== 'pending') {
+                return response()->json([
+                    'message' => 'Only pending orders can be completed'
                 ], 400);
             }
         }
