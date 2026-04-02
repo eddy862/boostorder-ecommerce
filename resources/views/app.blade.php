@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Vue SPA</title>
+    <title>{{ config('app.name', 'Laravel') }}</title>
     @vite('resources/js/app.js')
 </head>
 <body>
