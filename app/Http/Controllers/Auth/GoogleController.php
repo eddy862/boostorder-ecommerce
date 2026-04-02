@@ -25,11 +25,12 @@ class GoogleController extends Controller
                 'name' => $googleUser->getName(),
                 'password' => bcrypt('random_password'), // not used
                 'email_verified_at' => now(), 
+                'google_id' => $googleUser->getId(),
             ]
         );
 
         Auth::login($user);
 
-        return redirect('/');
+        return redirect(request('redirect', '/'));
     }
 }

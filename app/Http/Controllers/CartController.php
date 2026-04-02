@@ -14,19 +14,19 @@ class CartController extends Controller
         return response()->json($cart);
     }
 
-    public function add($id)
+    public function add($id, $quantity)
     {
         $product = Product::findOrFail($id);
 
         $cart = session()->get('cart', []);
 
         if (isset($cart[$id])) {
-            $cart[$id]['quantity']++;
+            $cart[$id]['quantity']+= $quantity;
         } else {
             $cart[$id] = [
                 "name" => $product->name,
                 "price" => $product->price,
-                "quantity" => 1
+                "quantity" => $quantity
             ];
         }
 
@@ -37,6 +37,7 @@ class CartController extends Controller
             'cart' => $cart
         ]);
     }
+
 
     public function update(Request $request, $id)
     {

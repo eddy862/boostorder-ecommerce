@@ -90,7 +90,7 @@ export default {
       let total = 0
 
       Object.values(cart).forEach(item => {
-        total += item.quantity
+        total += Number(item.quantity) || 0
       })
 
       this.cartCount = total

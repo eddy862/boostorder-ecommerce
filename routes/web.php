@@ -20,17 +20,21 @@ Route::get('/api/products', [ProductController::class, 'index']);
 Route::get('/api/products/{id}', [ProductController::class, 'show']);
 
 Route::get('/api/cart', [CartController::class, 'index']);
-Route::post('/api/cart/add/{id}', [CartController::class, 'add']);
+Route::post('/api/cart/add/{id}/{quantity}', [CartController::class, 'add']);
 Route::post('/api/cart/remove/{id}', [CartController::class, 'remove']);
 Route::post('/api/cart/update/{id}', [CartController::class, 'update']);
 
-Route::post('/api/checkout', [OrderController::class, 'checkout'])->middleware('auth', 'verified'); 
+Route::post('/api/checkout', [OrderController::class, 'checkout'])
+    ->middleware('auth', 'verified'); 
+Route::post('/api/checkout/buy-now/{id}/{quantity}', [OrderController::class, 'buyNow'])
+    ->middleware('auth', 'verified');
 
-Route::get('/api/orders', [OrderController::class, 'index'])->middleware('auth', 'verified');
-Route::post('/api/orders/{id}/status', [OrderController::class, 'updateStatus'])->middleware('auth', 'verified');
+Route::get('/api/orders', [OrderController::class, 'index'])
+    ->middleware('auth', 'verified');
+Route::post('/api/orders/{id}/status', [OrderController::class, 'updateStatus'])
+    ->middleware('auth', 'verified');
 
 Route::get('/{any}', function () {
     return view('app');
 })->where('any', '.*');
-
 

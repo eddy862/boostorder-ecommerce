@@ -11,7 +11,8 @@
         Loading...
       </div>
 
-      <div v-if="filteredProducts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div v-if="filteredProducts.length > 0"
+        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         <div v-for="product in filteredProducts" :key="product.id" @click="showProduct(product)"
           class="bg-white border border-orange-100 rounded-xl shadow hover:shadow-lg transition cursor-pointer flex flex-col items-center p-4 relative group">
 
@@ -19,14 +20,28 @@
             class="w-full max-w-[180px] h-[140px] object-cover rounded-lg mb-3 border border-orange-100 group-hover:scale-105 transition" />
 
           <h3 class="text-base font-semibold text-gray-800 mb-1 text-center line-clamp-2 min-h-[48px]">{{ product.name
-            }}</h3>
+          }}</h3>
           <p class="text-orange-500 font-bold text-lg mb-2">RM {{ product.price }}</p>
 
-          <button :disabled="product.stock === 0" @click.stop="addToCart(product.id)"
-            class="w-full py-2 rounded-lg font-semibold text-white transition
-              bg-orange-400 hover:bg-orange-500 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed">
-            {{ product.stock === 0 ? 'Out of Stock' : 'Add to Cart' }}
-          </button>
+          <div class="mb-3 flex items-center gap-2 w-full">
+            <label :for="`quantity-${product.id}`" class="text-sm font-medium text-gray-600">Qty</label>
+            <input :id="`quantity-${product.id}`" v-model.number="quantities[product.id]" @click.stop type="number"
+              min="1" :max="product.stock"
+              class="w-full rounded-lg border border-orange-200 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-300" />
+          </div>
+
+          <div class="flex w-full flex-col gap-2">
+            <button :disabled="product.stock === 0" @click.stop="buyNow(product)"
+              class="w-full py-2 rounded-lg font-semibold text-orange-500 transition border border-orange-300 bg-orange-50 hover:bg-orange-100 disabled:bg-gray-100 disabled:text-gray-400 disabled:border-gray-200 disabled:cursor-not-allowed">
+              {{ product.stock === 0 ? 'Out of Stock' : 'Buy Now' }}
+            </button>
+
+            <button :disabled="product.stock === 0" @click.stop="addToCart(product)"
+              class="w-full py-2 rounded-lg font-semibold text-white transition
+                bg-orange-400 hover:bg-orange-500 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed">
+              {{ product.stock === 0 ? 'Out of Stock' : 'Add to Cart' }}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -67,12 +82,18 @@ export default {
       search: '',
       searchTimeout: null,
       debouncedSearch: '',
-      selectedProduct: null
+      selectedProduct: null,
+      quantities: {}
     }
   },
 
   mounted() {
     this.fetchProducts()
+
+    if (this.$route.query['buy-now']) {
+      this.buyNow()
+      this.$router.replace({ query: {} })
+    }
   },
 
   methods: {
@@ -81,6 +102,10 @@ export default {
         const response = await axios.get('/api/products')
         console.log(response.data)
         this.products = response.data
+        this.quantities = response.data.reduce((acc, product) => {
+          acc[product.id] = 1
+          return acc
+        }, {})
       } catch (error) {
         console.error(error)
       }
@@ -93,13 +118,42 @@ export default {
       }, 400) // 400ms debounce
     },
 
-    async addToCart(productId) {
+    async addToCart(product) {
+      const quantity = Number(this.getSelectedQuantity(product))
+
       try {
-        const response = await axios.post(`/api/cart/add/${productId}`)
+        const response = await axios.post(`/api/cart/add/${product.id}/${quantity}`)
         console.log(response.data)
         window.dispatchEvent(new Event('cart-updated'))
       } catch (error) {
         console.error(error)
+      }
+    },
+
+    async buyNow(product) {
+      const productName = product ? product.name : this.$route.query['name']
+      const productId = product ? product.id : this.$route.query['buy-now']
+      const quantity = product ? Number(this.getSelectedQuantity(product)) : Number(this.$route.query['quantity'])
+
+      if (!confirm(`Proceed to buy ${quantity} of "${productName}"?`)) {
+        return
+      }
+
+      try {
+        const res = await axios.post(`/api/checkout/buy-now/${productId}/${quantity}`)
+        console.log(res.data)
+        alert('Order placed! Order id: ' + res.data.order.id)
+        this.fetchProducts()
+      } catch (error) {
+        console.error(error)
+        if (error.response && error.response.status === 401) {
+          // redirect to login then redirect back to product page with buy-now intent
+          const redirectUrl = encodeURIComponent(`/?buy-now=${productId}&quantity=${quantity}&name=${productName}`)
+          window.location.href = `/login?redirect=${redirectUrl}`
+        } else {
+          alert(error.response?.data?.message || 'An error occurred while processing your order.')
+          console.error('Buy Now error details:', error.response?.data || error)
+        }
       }
     },
 
@@ -109,6 +163,17 @@ export default {
 
     getImage(id) {
       return `https://picsum.photos/seed/${id}/300/200`
+    },
+
+    getSelectedQuantity(product) {
+      const rawQuantity = Number(this.quantities[product.id] ?? 1)
+
+      if (!Number.isFinite(rawQuantity) || rawQuantity < 1) {
+        this.quantities[product.id] = 1
+        return 1
+      }
+
+      return Math.floor(rawQuantity)
     }
   },
 

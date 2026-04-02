@@ -23,14 +23,79 @@ class OrderController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $order = Order::where('user_id', Auth::id())->findOrFail($id);
+        $user = Auth::user();
+
+        $newStatus = $request->status;
+
+        // user
+        if (!$user->isAdmin()) {
+            // Only allow cancel
+            if ($newStatus !== 'cancelled') {
+                return response()->json([
+                    'message' => 'Unauthorized action'
+                ], 403);
+            }
+
+            // Only if pending
+            if ($order->status !== 'pending') {
+                return response()->json([
+                    'message' => 'Order cannot be cancelled'
+                ], 400);
+            }
+        }
+
+        // admin 
+        if ($user->isAdmin()) {
+            // Optional: restrict invalid transitions
+            if ($order->status === 'completed') {
+                return response()->json([
+                    'message' => 'Completed order cannot be changed'
+                ], 400);
+            }
+        }
 
         $order->update([
-            'status' => $request->status
+            'status' => $newStatus
         ]);
 
         return response()->json([
             'message' => 'Status updated',
             'order' => $order
+        ]);
+    }
+
+    public function buyNow($id, $quantity) {
+        $product = Product::findOrFail($id);
+
+        if ($quantity > $product->stock) {
+            return response()->json([
+                'message' => "Not enough stock for product - {$product->name}, available: {$product->stock}, requested: {$quantity}"
+            ], 400);
+        }
+
+        $product->decrement('stock', $quantity);
+
+        $order = Order::create([
+            'user_id' => Auth::id(), 
+            'total_price' => 0,
+            'status' => 'pending'
+        ]);
+
+        $subtotal = $product->price * $quantity;
+        OrderItem::create([
+            'order_id' => $order->id,
+            'product_id' => $product->id,
+            'quantity' => $quantity,
+            'price' => $product->price
+        ]);
+
+        $order->update([
+            'total_price' => $subtotal
+        ]);
+
+        return response()->json([
+            'message' => 'Order placed successfully',
+            'order' => $order->load('items')
         ]);
     }
 
