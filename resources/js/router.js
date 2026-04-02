@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import Home from './components/Home.vue'
 import ProductList from './components/ProductList.vue'
 import CartPage from './components/CartPage.vue'
 import OrderHistory from './components/OrderHistory.vue'
@@ -10,6 +11,11 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel'
 const routes = [
   {
     path: '/',
+    component: Home,
+    meta: { title: 'Home' }
+  },
+  {
+    path: '/products',
     component: ProductList,
     meta: { title: 'Products' }
   },

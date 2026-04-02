@@ -23,11 +23,29 @@
           }}</h3>
           <p class="text-orange-500 font-bold text-lg mb-2">RM {{ product.price }}</p>
 
-          <div class="mb-3 flex items-center gap-2 w-full">
-            <label :for="`quantity-${product.id}`" class="text-sm font-medium text-gray-600">Qty</label>
-            <input :id="`quantity-${product.id}`" v-model.number="quantities[product.id]" @click.stop type="number"
-              min="1" :max="product.stock"
-              class="w-full rounded-lg border border-orange-200 px-3 py-2 text-sm focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-300" />
+          <div class="mb-3 flex items-center justify-between w-full rounded-lg border border-orange-200 px-3 py-2">
+            <span class="text-sm font-medium text-gray-600">Qty</span>
+            <div class="flex items-center gap-2">
+              <button
+                @click.stop="decreaseQuantity(product)"
+                :disabled="product.stock === 0 || getSelectedQuantity(product) <= 1"
+                class="flex h-8 w-8 items-center justify-center rounded-full border border-orange-300 bg-white text-orange-500 transition hover:bg-orange-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-300"
+              >
+                -
+              </button>
+
+              <span class="min-w-8 text-center font-semibold text-gray-700">
+                {{ getSelectedQuantity(product) }}
+              </span>
+
+              <button
+                @click.stop="increaseQuantity(product)"
+                :disabled="product.stock === 0 || getSelectedQuantity(product) >= product.stock"
+                class="flex h-8 w-8 items-center justify-center rounded-full border border-orange-300 bg-white text-orange-500 transition hover:bg-orange-50 disabled:cursor-not-allowed disabled:border-gray-200 disabled:text-gray-300"
+              >
+                +
+              </button>
+            </div>
           </div>
 
           <div class="flex w-full flex-col gap-2">
@@ -148,7 +166,7 @@ export default {
         console.error(error)
         if (error.response && error.response.status === 401) {
           // redirect to login then redirect back to product page with buy-now intent
-          const redirectUrl = encodeURIComponent(`/?buy-now=${productId}&quantity=${quantity}&name=${productName}`)
+          const redirectUrl = encodeURIComponent(`/products?buy-now=${productId}&quantity=${quantity}&name=${productName}`)
           window.location.href = `/login?redirect=${redirectUrl}`
         } else {
           alert(error.response?.data?.message || 'An error occurred while processing your order.')
@@ -161,6 +179,22 @@ export default {
       this.selectedProduct = product
     },
 
+    increaseQuantity(product) {
+      const current = this.getSelectedQuantity(product)
+
+      if (product.stock > 0 && current < product.stock) {
+        this.quantities[product.id] = current + 1
+      }
+    },
+
+    decreaseQuantity(product) {
+      const current = this.getSelectedQuantity(product)
+
+      if (current > 1) {
+        this.quantities[product.id] = current - 1
+      }
+    },
+
     getImage(id) {
       return `https://picsum.photos/seed/${id}/300/200`
     },
@@ -171,6 +205,11 @@ export default {
       if (!Number.isFinite(rawQuantity) || rawQuantity < 1) {
         this.quantities[product.id] = 1
         return 1
+      }
+
+      if (product.stock > 0 && rawQuantity > product.stock) {
+        this.quantities[product.id] = product.stock
+        return product.stock
       }
 
       return Math.floor(rawQuantity)
