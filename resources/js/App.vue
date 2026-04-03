@@ -2,7 +2,7 @@
   <div :class="isAdminLayout ? 'min-h-screen bg-slate-100' : 'min-h-screen bg-orange-50'">
     <template v-if="isAdminLayout">
       <div class="min-h-screen lg:grid lg:grid-cols-[260px_minmax(0,1fr)]">
-        <aside class="border-r border-slate-200 bg-slate-950 px-5 py-6 text-slate-100">
+        <aside class="border-r border-slate-200 bg-slate-950 px-5 py-6 text-slate-100 lg:sticky lg:top-0 lg:h-screen lg:self-start lg:overflow-y-auto">
           <router-link to="/admin/products" class="flex items-center gap-3 rounded-2xl bg-slate-900/70 px-4 py-3">
             <span class="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-400 text-white shadow-sm">
               <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
