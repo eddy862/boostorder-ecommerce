@@ -7,22 +7,24 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
+use App\Events\OrderUpdated;
 
 class OrderController extends Controller
 {
-    public function index()
+    public function index() // get the soft deleted products as well
     {
-        $orders = Order::with('items.product') // with = eager load order items and their associated products
-            ->where('user_id', Auth::id())
-            ->latest() // order by created_at desc
-            ->get();
+        $orders = Order::with(['items.product' => function($query) {
+            $query->withTrashed();
+        }])->where('user_id', Auth::id())->latest()->get();
 
         return response()->json($orders);
     }
 
     public function adminIndex()
     {
-        $orders = Order::with(['user', 'items.product']) // eager load user, order items and their associated products
+        $orders = Order::with(['user', 'items.product' => function($query) {
+            $query->withTrashed();
+        }]) 
             ->latest()
             ->get();
 
@@ -73,6 +75,8 @@ class OrderController extends Controller
             'status' => $newStatus
         ]);
 
+        event(new OrderUpdated($order));
+
         return response()->json([
             'message' => 'Status updated',
             'order' => $order
@@ -107,6 +111,8 @@ class OrderController extends Controller
         $order->update([
             'total_price' => $subtotal
         ]);
+
+        event(new OrderUpdated($order));
 
         return response()->json([
             'message' => 'Order placed successfully',
@@ -164,6 +170,8 @@ class OrderController extends Controller
             $order->update([
                 'total_price' => $total
             ]);
+
+            event(new OrderUpdated($order));
 
             // Clear cart
             session()->forget('cart');

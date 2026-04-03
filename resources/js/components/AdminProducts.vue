@@ -179,7 +179,7 @@
 
 <script>
 import axios from 'axios'
-import { getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage'
+import { deleteObject, getDownloadURL, ref as storageRef, uploadBytes } from 'firebase/storage'
 import { storage } from '../firebase'
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024 // 5MB
@@ -336,6 +336,18 @@ export default {
       return getDownloadURL(productImageRef)
     },
 
+    async deleteProductImage(productId) {
+      const productImageRef = storageRef(storage, `products/${productId}`)
+
+      try {
+        await deleteObject(productImageRef)
+      } catch (error) {
+        if (error?.code !== 'storage/object-not-found') {
+          throw error
+        }
+      }
+    },
+
     async submitForm() {
       this.submitting = true
       this.errors = {}
@@ -398,6 +410,7 @@ export default {
 
       try {
         await axios.delete(`/api/products/${product.id}`)
+        await this.deleteProductImage(product.id)
         this.message = 'Product deleted successfully.'
         this.messageType = 'success'
         await this.fetchProducts()
@@ -406,7 +419,7 @@ export default {
           this.resetForm()
         }
       } catch (error) {
-        this.message = error.response?.data?.message || 'Unable to delete the product right now.'
+        this.message = error.response?.data?.message || error.message || 'Unable to delete the product right now.'
         this.messageType = 'error'
       }
     },

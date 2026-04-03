@@ -1,274 +1,303 @@
-# 🛒 E-Commerce Web App (Laravel + Vue SPA)
+# E-Commerce Web App (Laravel + Vue SPA)
 
-A full-stack eCommerce application built with Laravel (backend) and Vue 3 (SPA frontend).
-This project demonstrates core shopping flow including product browsing, cart management, authentication, checkout, and order history.
+A full-stack e-commerce application built with Laravel for the backend and Vue 3 for the SPA frontend.
+The project now includes a customer storefront, a separate admin panel, email verification, Google login, product image upload to Firebase Storage, cart and checkout flows, and order management for both users and admins.
 
----
+## Features
 
-# 🚀 Features
+### Customer Storefront
 
-## 🧾 Product Catalogue
+- Browse products in a Vue SPA
+- Search products with debounce
+- View product stock and pricing
+- Adjust quantity with plus/minus controls
+- Add items to cart
+- Use Buy Now for direct checkout flow
+- View uploaded product images
 
-* View all products
-* Search products (with debounce)
-* Display product details (modal)
-* Show stock availability
-* Dummy product images for UI enhancement
+### Cart and Checkout
 
-## 🛒 Cart System (Session-Based)
+- Session-based cart for guests and logged-in users
+- Update cart quantities
+- Remove items from cart
+- Cart badge in the navbar
+- Checkout protected by authentication and email verification
 
-* Add to cart
-* Update quantity (debounced)
-* Remove items
-* Persistent session cart
-* Cart badge (total quantity)
+### Authentication
 
-## 🔐 Authentication
+- Register and login with Laravel Breeze
+- Google OAuth2 login with Socialite
+- Email verification flow
+- Verification notice 
 
-* User registration & login (Laravel Breeze)
-* Only logged-in users can checkout
-* Redirect back after login
+### User Orders
 
-## 💳 Checkout System
+- View order history
+- Filter orders by `all`, `pending`, `completed`, and `cancelled`
+- Cancel only pending orders
+- Display purchased item images
 
-* Convert cart to order
-* Create order items
-* Calculate total price
-* Deduct product stock
-* Clear cart after checkout
+### Admin Panel
 
-## 📦 Order Management
+- Separate admin layout and navigation
+- Admin login redirects into the admin panel
+- Manage products from `/admin/products`
+- Add, edit, and delete products
+- Upload one image per product to Firebase Storage at `products/<product_id>`
+- Delete Firebase image when the product is deleted
+- Manage orders from `/admin/orders`
+- View pending, cancelled, and completed orders
+- Mark pending orders as completed
 
-* View order history
-* Display purchased items with images
-* Update order status (pending, completed, cancelled)
-* Filter orders by status
+### Realtime / UX
 
-## 🎨 UI / UX
+- Product list listens for product update broadcasts
+- Order list listens for order status update broadcasts
+- Dynamic page titles for auth pages and SPA routes
 
-* Vue SPA (no page reload)
-* Tailwind CSS styling
-* Responsive layout
-* Image placeholders (Picsum)
+## Tech Stack
 
----
+### Backend
 
-# 🧱 Tech Stack
+- Laravel 
+- Laravel Breeze
+- Laravel Socialite
+- Eloquent ORM
+- MySQL
+- Pusher-compatible broadcasting
 
-## Backend
+### Frontend
 
-* PHP (Laravel)
-* Laravel Breeze (Authentication)
-* Eloquent ORM
-* MySQL 
+- Vue
+- Vue Router
+- Axios
+- Vite
+- Tailwind CSS
+- Firebase Web SDK
 
-## Frontend
+### External Services
 
-* Vue 3
-* Vue Router
-* Axios
-* Vite
-* Tailwind CSS
+- Google OAuth2
+- Firebase Storage
+- Pusher Channels
 
----
+## Main Flows
 
-# ⚙️ Installation & Setup
+### Customer Flow
 
-## 1. Clone the Repository
+```text
+Browse products -> Add to cart / Buy now -> Login for guest user  -> Verify email -> Checkout -> View order history
+```
+
+### Admin Flow
+
+```text
+Login as admin -> Redirect to admin panel -> Manage products -> Manage orders
+```
+
+## Installation
+
+### 1. Clone the repository
 
 ```bash
 git clone <your-repo-url>
 cd ecommerce
 ```
 
----
-
-## 2. Install Backend Dependencies
+### 2. Install dependencies
 
 ```bash
 composer install
-```
-
----
-
-## 3. Install Frontend Dependencies
-
-```bash
 npm install
 ```
 
----
+### 3. Environment setup
 
-## 4. Environment Setup
-
-Copy `.env` file:
-
-```bash
-cp .env.example .env
-```
-
-Update database config:
+Copy `.env` from `.env.example`, then update the values for:
 
 ```env
+APP_NAME=E-commerce
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mysql
 DB_DATABASE=your_db
 DB_USERNAME=root
 DB_PASSWORD=
+
+QUEUE_CONNECTION=database
+BROADCAST_CONNECTION=pusher
+
+MAIL_MAILER=log
+
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
+
+PUSHER_APP_ID=
+PUSHER_APP_KEY=
+PUSHER_APP_SECRET=
+PUSHER_APP_CLUSTER=
+
+VITE_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
+VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
+VITE_BROADCAST_DRIVER=pusher
+
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
 ```
 
----
-
-## 5. Generate App Key
+### 4. Run migrations
 
 ```bash
-php artisan key:generate
+php artisan migrate:fresh --seed
 ```
 
----
+### 5. Start development
 
-## 6. Run Migrations & Seeders
-
-```bash
-php artisan migrate
-php artisan db:seed
-```
-
----
-
-## 7. Start Development Servers
-
-### Backend
+Backend:
 
 ```bash
 php artisan serve
 ```
 
-### Frontend
+Frontend:
 
 ```bash
 npm run dev
 ```
 
----
+### 6. Open the app
 
-## 8. Access App
-
-```
-http://127.0.0.1:8000
+```text
+http://localhost:8000
 ```
 
----
+Use one host consistently in development. Do not switch between `localhost` and `127.0.0.1`, especially for auth, CSRF, and OAuth callbacks.
 
-# 🔑 Test Account
+## Quick Start With Docker
 
+This repo now includes a production-style Docker setup with:
+
+- `nginx`
+- `php-fpm`
+- `mysql`
+- Laravel queue worker
+- frontend assets built during image build with `npm run build`
+
+1. Copy the Docker env template:
+
+```bash
+cp .env.example .env
 ```
+
+2. Start the containers:
+
+```bash
+docker compose up --build
+```
+
+3. Open the app:
+
+```text
+App via Nginx: http://localhost:8000
+MySQL exposed port: 3307
+```
+
+### Docker services
+
+- `app`: PHP-FPM application container
+- `queue`: Laravel queue worker
+- `nginx`: web server serving the built frontend and Laravel public files
+- `mysql`: MySQL 8 database
+
+### Docker Notes
+
+- the frontend is built into the image, so there is no separate Vite dev server in this Docker setup
+- the app container runs `php artisan migrate --force` on startup
+- it also runs `php artisan db:seed --force` on startup with `APP_SEED=true`
+- the seeders are idempotent, so restarting containers does not keep duplicating the seeded products and users
+- true database seeding cannot happen during Docker image build because the MySQL container is not available yet, so seeding is done automatically at container startup instead
+
+## Dev Testing Notes
+
+### Email Verification / Reset Password
+
+With `MAIL_MAILER=log`, emails are written to:
+
+- `storage/logs/laravel.log`
+
+For verification and reset links copied from logs:
+
+- use the plain URL, for example:
+
+    ```text
+    http://localhost:8000/verify-email/2/13620195ca9e048425a60700517209c13d533256?expires=1775149585&signature=0c3b20ab4e19919b05e42234e1fcb1c1efb777802429a93254409742e951d360
+    ```
+
+## Test Accounts
+
+Seeded user:
+
+```text
 Email: test@example.com
 Password: password
 ```
 
----
+Seeded admin:
 
-# 🗄️ Database Design
+```text
+Email: admin@example.com
+Password: password
+```
 
-![database design](./db.drawio.png)
-
-## Core Tables
+## Database Overview
 
 ### Users
 
-* id
-* name
-* email
-* password
+- google_id
+- name
+- email
+- password
+- role
+- email_verified_at
 
----
+### Products (Soft-delete)
 
-### Products
-
-* id
-* name
-* price
-* stock
-* description
-
----
+- name
+- description
+- price
+- stock
+- image_url
+- is_active
+- is_delete
 
 ### Orders
 
-* id
-* user_id (FK)
-* total_price
-* status
-
----
+- user_id
+- total_price
+- status
 
 ### Order Items
 
-* id
-* order_id (FK)
-* product_id (FK)
-* quantity
-* price
+- order_id
+- product_id
+- quantity
+- price
 
----
+## Current Architecture Notes
 
-## Relationships
+- Laravel handles auth, sessions, validation, database access, order creation, and admin authorization
+- Vue handles storefront pages, cart UI, order UI, and admin SPA pages
+- Cart data is stored in Laravel session
+- Product images are stored in Firebase Storage, while only the image URL is stored in the database
+- Product and order status updates are broadcast so the storefront can refresh in near real time
 
-* User → hasMany Orders
-* Order → hasMany OrderItems
-* OrderItem → belongsTo Product
+## Future Improvements
 
----
-
-# 🔄 Application Flow
-
-### Guest
-
-```
-Browse products → Add to cart
-```
-
-### Checkout
-
-```
-Click checkout → Redirect to login → Login → Back to cart → Checkout
-```
-
-So only registered users can create orders
-
-### Order Creation
-
-```
-Validate stock → Create order → Create order items → Deduct stock → Clear cart
-```
-
----
-
-# 🎯 Key Design Decisions
-
-## Session-Based Cart
-
-* Simpler than DB cart
-* Works for guest users
-* Uses Laravel session
-
-## SPA Architecture
-
-* Vue Router handles frontend navigation
-* Laravel serves as API + auth
-
-## Client-Side Filtering
-
-* Order filtering done in Vue (fast, no extra API)
-
----
-
-# 🧪 Future Improvements
-
-* Product images upload (instead of dummy)
-* Admin panel for product management
-* Pagination for products & orders (only if data size grows)
-* Payment integration
-* Role-based access (admin vs user)
-
----
-
+- Product pagination and admin search/filter tools
+- Better toast notifications instead of `alert()` / `confirm()`
+- Payment gateway integration
+- Dashboard metrics for admins
+- Automated tests for admin/product/order flows

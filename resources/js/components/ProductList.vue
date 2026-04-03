@@ -108,7 +108,6 @@
 
 <script>
 import axios from 'axios'
-axios.defaults.withCredentials = true
 
 export default {
   data() {
@@ -128,12 +127,21 @@ export default {
       this.buyNow()
       this.$router.replace({ query: {} })
     }
+
+    if (window.Echo?.channel) {
+      window.Echo.channel('products')
+        .listen('.product.updated', (e) => {
+          console.log('Received product update event:', e)
+          this.fetchProducts()
+        })
+    }
   },
 
   methods: {
     async fetchProducts() {
       try {
         const response = await axios.get('/api/products')
+        console.log('Fetched products:', response.data)
         this.products = response.data
         this.quantities = response.data.reduce((acc, product) => {
           acc[product.id] = 1

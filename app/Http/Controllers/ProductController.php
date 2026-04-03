@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Events\ProductUpdated;
 
 class ProductController extends Controller
 {
@@ -24,6 +25,8 @@ class ProductController extends Controller
 
         $product = Product::create($validated);
 
+        event(new ProductUpdated($product));
+
         return response()->json($product);
     }
 
@@ -41,6 +44,8 @@ class ProductController extends Controller
 
         $product->update($validated);
 
+        event(new ProductUpdated($product));
+
         return response()->json($product);
     }
 
@@ -53,7 +58,10 @@ class ProductController extends Controller
 
     public function destroy($id)
     {
-        Product::findOrFail($id)->delete();
+        $product = Product::findOrFail($id);
+        $product->delete();
+
+        event(new ProductUpdated($product));
 
         return response()->json(['message' => 'Deleted']);
     }

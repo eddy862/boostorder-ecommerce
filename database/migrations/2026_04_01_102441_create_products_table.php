@@ -20,6 +20,7 @@ return new class extends Migration
             $table->text('image_url')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps(); // This will create 'created_at' and 'updated_at' columns
+            $table->softDeletes(); // adds 'deleted_at' column for soft deletes
         });
     }
 
