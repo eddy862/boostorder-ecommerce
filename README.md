@@ -3,6 +3,18 @@
 A full-stack e-commerce application built with Laravel for the backend and Vue 3 for the SPA frontend.
 The project now includes a customer storefront, a separate admin panel, email verification, Google login, product image upload to Firebase Storage, cart and checkout flows, and order management for both users and admins.
 
+## Table of Contents
+
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Main Flows](#main-flows)
+- [Run The Project](#run-the-project)
+- [Email Verification / Password Reset Logs](#email-verification--password-reset-logs)
+- [Test Accounts](#test-accounts)
+- [Database Overview](#database-overview)
+- [Current Architecture Notes](#current-architecture-notes)
+- [Future Improvements](#future-improvements)
+
 ## Features
 
 ### Customer Storefront
@@ -335,7 +347,7 @@ Password: password
 - Vue handles storefront pages, cart UI, order UI, and admin SPA pages
 - Cart data is stored in Laravel session
 - Product images are stored in Firebase Storage, while only the image URL is stored in the database
-- Product and order status updates are broadcast so the storefront can refresh in near real time
+- Product and order status updates are broadcasted using Pusher so the storefront can refresh in near real time
 
 ## Future Improvements
 
