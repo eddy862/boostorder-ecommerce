@@ -95,37 +95,48 @@ Browse products -> Add to cart / Buy now -> Login for guest user  -> Verify emai
 Login as admin -> Redirect to admin panel -> Manage products -> Manage orders
 ```
 
-## Installation
+## Run The Project
 
-### 1. Clone the repository
+Choose one mode:
+
+- Local mode (PHP + Node running directly on your machine)
+- Docker mode (all services in containers)
+
+Do not run both modes at the same time.
+
+### Local Mode
+
+1. Clone and enter the project:
 
 ```bash
 git clone <your-repo-url>
 cd ecommerce
 ```
 
-### 2. Install dependencies
+2. Install dependencies:
 
 ```bash
 composer install
 npm install
 ```
 
-### 3. Environment setup
+3. Create your env file:
 
-Copy `.env` from `.env.example`, then update the values for:
+```bash
+cp .env.example .env
+```
+
+4. Update `.env` for local database and app URL:
 
 ```env
-APP_NAME=E-commerce
 APP_URL=http://localhost:8000
 
 DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
 DB_DATABASE=your_db
 DB_USERNAME=root
 DB_PASSWORD=
-
-QUEUE_CONNECTION=database
-BROADCAST_CONNECTION=pusher
 
 MAIL_MAILER=log
 
@@ -148,93 +159,123 @@ VITE_FIREBASE_PROJECT_ID=
 VITE_FIREBASE_STORAGE_BUCKET=
 ```
 
-### 4. Run migrations
+5. Run migrations and seeders:
 
 ```bash
 php artisan migrate:fresh --seed
 ```
 
-### 5. Start development
-
-Backend:
+6. Start backend and frontend in separate terminals:
 
 ```bash
 php artisan serve
 ```
 
-Frontend:
-
 ```bash
 npm run dev
 ```
 
-### 6. Open the app
+7. Open the app:
 
 ```text
 http://localhost:8000
 ```
 
-Use one host consistently in development. Do not switch between `localhost` and `127.0.0.1`, especially for auth, CSRF, and OAuth callbacks.
+### Docker Mode
 
-## Quick Start With Docker
+This setup includes:
 
-This repo now includes a production-style Docker setup with:
+- `nginx` (web server)
+- `app` (Laravel + PHP-FPM)
+- `queue` (Laravel queue worker)
+- `mysql` (database)
 
-- `nginx`
-- `php-fpm`
-- `mysql`
-- Laravel queue worker
-- frontend assets built during image build with `npm run build`
-
-1. Copy the Docker env template:
+1. Create your env file:
 
 ```bash
 cp .env.example .env
 ```
 
-2. Start the containers:
+2. Use Docker DB settings in `.env`:
+
+```env
+APP_URL=http://localhost:8000
+
+DB_HOST=mysql
+DB_PORT=3306
+DB_DATABASE=ecommerce_db
+DB_USERNAME=root
+DB_PASSWORD=root
+
+MAIL_MAILER=log
+
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URI=http://localhost:8000/auth/google/callback
+
+PUSHER_APP_ID=
+PUSHER_APP_KEY=
+PUSHER_APP_SECRET=
+PUSHER_APP_CLUSTER=
+
+VITE_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
+VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
+VITE_BROADCAST_DRIVER=pusher
+
+VITE_FIREBASE_API_KEY=
+VITE_FIREBASE_AUTH_DOMAIN=
+VITE_FIREBASE_PROJECT_ID=
+VITE_FIREBASE_STORAGE_BUCKET=
+```
+
+3. Build and start containers:
 
 ```bash
-docker compose up --build
+docker compose up --build -d
 ```
 
-3. Open the app:
+4. Open the app:
 
 ```text
-App via Nginx: http://localhost:8000
-MySQL exposed port: 3307
+App: http://localhost:8000
+MySQL host port: 3307
 ```
 
-### Docker services
+5. Stop containers:
 
-- `app`: PHP-FPM application container
-- `queue`: Laravel queue worker
-- `nginx`: web server serving the built frontend and Laravel public files
-- `mysql`: MySQL 8 database
+```bash
+docker compose down
+```
 
-### Docker Notes
+Notes:
 
-- the frontend is built into the image, so there is no separate Vite dev server in this Docker setup
-- the app container runs `php artisan migrate --force` on startup
-- it also runs `php artisan db:seed --force` on startup with `APP_SEED=true`
-- the seeders are idempotent, so restarting containers does not keep duplicating the seeded products and users
-- true database seeding cannot happen during Docker image build because the MySQL container is not available yet, so seeding is done automatically at container startup instead
+- frontend assets are built during Docker image build (`npm run build`)
+- app container runs migrations on startup
+- app container seeds on startup when `APP_SEED=true`
 
-## Dev Testing Notes
+## Email Verification / Password Reset Logs
 
-### Email Verification / Reset Password
+When `MAIL_MAILER=log`, email links are written to logs.
 
-With `MAIL_MAILER=log`, emails are written to:
+### Local Mode
 
-- `storage/logs/laravel.log`
+Check:
 
-For verification and reset links copied from logs:
+```text
+storage/logs/laravel.log
+```
 
-- use the plain URL, for example:
+### Docker Mode (recommended)
 
-    ```text
-    http://localhost:8000/verify-email/2/13620195ca9e048425a60700517209c13d533256?expires=1775149585&signature=0c3b20ab4e19919b05e42234e1fcb1c1efb777802429a93254409742e951d360
-    ```
+Stream logs from the app container:
+
+```bash
+docker compose logs -f app
+```
+
+Then trigger "send verification email" in the app and copy the full URL from the log output into your browser.
+
+Use one host consistently in development. Do not switch between `localhost` and `127.0.0.1`, especially for auth, CSRF, and OAuth callbacks.
 
 ## Test Accounts
 
@@ -253,6 +294,8 @@ Password: password
 ```
 
 ## Database Overview
+
+![database design](./db.drawio.png)
 
 ### Users
 
