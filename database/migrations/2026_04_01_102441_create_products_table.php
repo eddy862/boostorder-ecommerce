@@ -17,7 +17,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->decimal('price', 8, 2); // second parameter is total digits, third is decimal places
             $table->integer('stock')->default(0);
-            $table->string('image_url')->nullable();
+            $table->text('image_url')->nullable();
             $table->boolean('is_active')->default(true);
             $table->timestamps(); // This will create 'created_at' and 'updated_at' columns
         });

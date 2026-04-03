@@ -10,6 +10,20 @@ class CartController extends Controller
     public function index()
     {
         $cart = session()->get('cart', []);
+        $productIds = array_keys($cart);
+
+        if (!empty($productIds)) {
+            $products = Product::whereIn('id', $productIds)->get()->keyBy('id');
+
+            foreach ($cart as $id => &$item) {
+                if (isset($products[$id])) {
+                    $item['image_url'] = $products[$id]->image_url;
+                }
+            }
+            unset($item);
+
+            session()->put('cart', $cart);
+        }
 
         return response()->json($cart);
     }
@@ -22,11 +36,13 @@ class CartController extends Controller
 
         if (isset($cart[$id])) {
             $cart[$id]['quantity']+= $quantity;
+            $cart[$id]['image_url'] = $product->image_url;
         } else {
             $cart[$id] = [
                 "name" => $product->name,
                 "price" => $product->price,
-                "quantity" => $quantity
+                "quantity" => $quantity,
+                "image_url" => $product->image_url,
             ];
         }
 

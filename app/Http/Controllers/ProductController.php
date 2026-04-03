@@ -19,6 +19,7 @@ class ProductController extends Controller
             'price' => ['required', 'numeric', 'min:0'],
             'stock' => ['required', 'integer', 'min:0'],
             'description' => ['nullable', 'string'],
+            'image_url' => ['nullable', 'string'],
         ]);
 
         $product = Product::create($validated);
@@ -33,6 +34,7 @@ class ProductController extends Controller
             'price' => ['required', 'numeric', 'min:0'],
             'stock' => ['required', 'integer', 'min:0'],
             'description' => ['nullable', 'string'],
+            'image_url' => ['nullable', 'string'],
         ]);
 
         $product = Product::findOrFail($id);

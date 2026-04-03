@@ -1,6 +1,7 @@
 <template>
   <div class="space-y-8 py-2">
-    <section class="overflow-hidden rounded-[2rem] bg-gradient-to-br from-orange-400 via-orange-300 to-amber-200 px-6 py-8 text-white shadow-xl shadow-orange-200 sm:px-8">
+    <section
+      class="overflow-hidden rounded-[2rem] bg-gradient-to-br from-orange-400 via-orange-300 to-amber-200 px-6 py-8 text-white shadow-xl shadow-orange-200 sm:px-8">
       <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div class="max-w-2xl">
           <p class="text-sm font-semibold uppercase tracking-[0.26em] text-orange-100">Daily Picks</p>
@@ -38,15 +39,19 @@
     </section>
 
     <section v-if="filteredProducts.length > 0" class="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-3">
-      <div v-for="product in filteredProducts" :key="product.id" @click="showProduct(product)"
+      <div v-for="product in filteredProducts" :key="product.id"
         class="group relative overflow-hidden rounded-[1.75rem] border border-orange-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-xl hover:shadow-orange-100">
         <div class="absolute right-4 top-4 rounded-full px-3 py-1 text-xs font-bold"
           :class="product.stock > 0 ? 'bg-orange-100 text-orange-500' : 'bg-gray-100 text-gray-400'">
           {{ product.stock > 0 ? `${product.stock} left` : 'Out of stock' }}
         </div>
 
-        <img :src="getImage(product.id)" alt="product image"
+        <img v-if="product.image_url" :src="product.image_url" :alt="product.name"
           class="mb-4 h-[180px] w-full rounded-2xl border border-orange-100 object-cover transition " />
+        <div v-else
+          class="flex h-[180px] w-full items-center justify-center rounded-2xl border border-orange-100 bg-orange-50 text-sm text-orange-400 mb-4">
+          No image available
+        </div>
 
         <div class="mb-4">
           <h3 class="min-h-[56px] line-clamp-2 text-xl font-black leading-7 text-gray-800">{{ product.name }}</h3>
@@ -56,16 +61,15 @@
           <p class="mt-3 text-2xl font-black text-orange-500">RM {{ formatPrice(product.price) }}</p>
         </div>
 
-        <div class="mb-4 flex items-center justify-between rounded-2xl border border-orange-100 bg-orange-50/60 px-4 py-3">
+        <div
+          class="mb-4 flex items-center justify-between rounded-2xl border border-orange-100 bg-orange-50/60 px-4 py-3">
           <div>
             <p class="text-xs font-semibold uppercase tracking-[0.18em] text-orange-400">Quantity</p>
           </div>
           <div class="flex items-center gap-2 rounded-full bg-white px-2 py-1 shadow-sm">
-            <button
-              @click.stop="decreaseQuantity(product)"
+            <button @click.stop="decreaseQuantity(product)"
               :disabled="product.stock === 0 || getSelectedQuantity(product) <= 1"
-              class="flex h-9 w-9 items-center justify-center rounded-full border border-orange-200 bg-white text-orange-500 transition hover:bg-orange-50 disabled:cursor-not-allowed disabled:border-gray-100 disabled:text-gray-300"
-            >
+              class="flex h-9 w-9 items-center justify-center rounded-full border border-orange-200 bg-white text-orange-500 transition hover:bg-orange-50 disabled:cursor-not-allowed disabled:border-gray-100 disabled:text-gray-300">
               -
             </button>
 
@@ -73,11 +77,9 @@
               {{ getSelectedQuantity(product) }}
             </span>
 
-            <button
-              @click.stop="increaseQuantity(product)"
+            <button @click.stop="increaseQuantity(product)"
               :disabled="product.stock === 0 || getSelectedQuantity(product) >= product.stock"
-              class="flex h-9 w-9 items-center justify-center rounded-full border border-orange-200 bg-white text-orange-500 transition hover:bg-orange-50 disabled:cursor-not-allowed disabled:border-gray-100 disabled:text-gray-300"
-            >
+              class="flex h-9 w-9 items-center justify-center rounded-full border border-orange-200 bg-white text-orange-500 transition hover:bg-orange-50 disabled:cursor-not-allowed disabled:border-gray-100 disabled:text-gray-300">
               +
             </button>
           </div>
@@ -198,10 +200,6 @@ export default {
       if (current > 1) {
         this.quantities[product.id] = current - 1
       }
-    },
-
-    getImage(id) {
-      return `https://picsum.photos/seed/${id}/300/200`
     },
 
     formatPrice(price) {

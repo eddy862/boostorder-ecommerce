@@ -1,6 +1,7 @@
 <template>
   <div class="space-y-6">
-    <section class="rounded-[2rem] bg-gradient-to-br from-orange-400 via-orange-300 to-amber-200 px-6 py-8 text-white shadow-xl shadow-orange-200 sm:px-8">
+    <section
+      class="rounded-[2rem] bg-gradient-to-br from-orange-400 via-orange-300 to-amber-200 px-6 py-8 text-white shadow-xl shadow-orange-200 sm:px-8">
       <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p class="text-sm font-semibold uppercase tracking-[0.24em] text-orange-100">Your Cart</p>
@@ -35,8 +36,12 @@
       <div v-else>
         <div v-for="item in cartItems" :key="item.id"
           class="group flex items-center gap-4 border-b border-orange-100 py-5 last:border-b-0 sm:gap-6">
-          <img :src="getImage(item.id)" alt="product"
+          <img v-if="item.image_url" :src="item.image_url" :alt="item.name"
             class="h-[88px] w-[110px] rounded-2xl border border-orange-100 object-cover shadow-sm" />
+          <div v-else
+            class="flex h-[88px] w-[110px] items-center justify-center rounded-2xl border border-orange-100 bg-orange-50 text-sm text-orange-400">
+            No image
+          </div>
 
           <div class="min-w-0 flex-1">
             <h3 class="mb-1 truncate text-lg font-black text-gray-800">{{ item.name }}</h3>
@@ -60,8 +65,10 @@
           </div>
         </div>
 
-        <div class="mt-8 flex flex-col items-center justify-between gap-4 rounded-[1.5rem] border border-orange-100 bg-orange-50/60 p-5 sm:flex-row">
-          <h2 class="text-xl font-black text-gray-800">Total: <span class="text-orange-500">RM {{ formatPrice(total) }}</span></h2>
+        <div
+          class="mt-8 flex flex-col items-center justify-between gap-4 rounded-[1.5rem] border border-orange-100 bg-orange-50/60 p-5 sm:flex-row">
+          <h2 class="text-xl font-black text-gray-800">Total: <span class="text-orange-500">RM {{ formatPrice(total)
+              }}</span></h2>
           <button @click="checkout"
             class="rounded-xl bg-orange-400 px-8 py-3 text-lg font-semibold text-white shadow transition hover:bg-orange-500 disabled:bg-gray-300 disabled:text-gray-500">
             Place Order
@@ -202,10 +209,6 @@ export default {
           alert('Checkout failed: ' + (err.response?.data?.message || err.message))
         }
       }
-    },
-
-    getImage(id) {
-      return `https://picsum.photos/seed/${id}/200/150`
     },
 
     formatPrice(price) {

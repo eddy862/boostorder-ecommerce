@@ -1,6 +1,7 @@
 <template>
   <div class="space-y-6">
-    <section class="rounded-[2rem] bg-gradient-to-br from-orange-400 via-orange-300 to-amber-200 px-6 py-8 text-white shadow-xl shadow-orange-200 sm:px-8">
+    <section
+      class="rounded-[2rem] bg-gradient-to-br from-orange-400 via-orange-300 to-amber-200 px-6 py-8 text-white shadow-xl shadow-orange-200 sm:px-8">
       <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p class="text-sm font-semibold uppercase tracking-[0.24em] text-orange-100">Order History</p>
@@ -76,8 +77,12 @@
               <div>
                 <div v-for="item in order.items" :key="item.id"
                   class="mb-3 flex items-center gap-4 rounded-2xl bg-white px-4 py-3 last:mb-0">
-                  <img :src="getImage(item.product.id)" alt="product"
+                  <img v-if="item.product.image_url" :src="item.product.image_url" :alt="item.product.name"
                     class="h-[60px] w-[80px] rounded-lg border border-orange-100 object-cover" />
+                  <div v-else
+                    class="flex h-[60px] w-[80px] items-center justify-center rounded-lg border border-orange-100 bg-orange-50 text-xs text-orange-400">
+                    No image
+                  </div>
                   <div>
                     <p class="mb-0.5 font-semibold text-gray-800">{{ item.product.name }}</p>
                     <p class="mb-0.5 text-sm text-gray-500">Qty: x{{ item.quantity }}</p>
@@ -89,7 +94,7 @@
             </div>
 
             <div class="mt-5 flex items-center rounded-2xl border border-orange-100 bg-white px-4 py-4"
-              :class='{"justify-between": order.status === "pending", "justify-end": order.status !== "pending"}'>
+              :class='{ "justify-between": order.status === "pending", "justify-end": order.status !== "pending" }'>
               <div class="text-base font-medium text-gray-500">
                 Total:&nbsp;
                 <span class="text-lg font-black text-orange-500">RM {{ formatPrice(order.total_price) }}</span>
@@ -147,10 +152,6 @@ export default {
 
       order.status = res.data.order.status
       alert('Order cancelled')
-    },
-
-    getImage(id) {
-      return `https://picsum.photos/seed/${id}/200/150`
     },
 
     formatPrice(price) {
