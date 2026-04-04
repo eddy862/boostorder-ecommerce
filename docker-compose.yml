@@ -1,6 +1,15 @@
 services:
   app:
     build:
+      args:
+        APP_NAME: ${APP_NAME}
+        BROADCAST_CONNECTION: ${BROADCAST_CONNECTION}
+        PUSHER_APP_KEY: ${PUSHER_APP_KEY}
+        PUSHER_APP_CLUSTER: ${PUSHER_APP_CLUSTER}
+        VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY}
+        VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN}
+        VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID}
+        VITE_FIREBASE_STORAGE_BUCKET: ${VITE_FIREBASE_STORAGE_BUCKET}
       context: .
       dockerfile: Dockerfile
       target: app
@@ -8,9 +17,6 @@ services:
     env_file:
       - .env
     environment:
-      APP_URL: ${APP_URL:-http://localhost:8000}
-      DB_HOST: mysql
-      DB_PORT: ${DB_PORT:-3306}
       APP_SEED: "true"
     command: start-fpm
     depends_on:
@@ -19,6 +25,15 @@ services:
 
   queue:
     build:
+      args:
+          APP_NAME: ${APP_NAME}
+          BROADCAST_CONNECTION: ${BROADCAST_CONNECTION}
+          PUSHER_APP_KEY: ${PUSHER_APP_KEY}
+          PUSHER_APP_CLUSTER: ${PUSHER_APP_CLUSTER}
+          VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY}
+          VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN}
+          VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID}
+          VITE_FIREBASE_STORAGE_BUCKET: ${VITE_FIREBASE_STORAGE_BUCKET}
       context: .
       dockerfile: Dockerfile
       target: app
@@ -26,9 +41,6 @@ services:
     env_file:
       - .env
     environment:
-      APP_URL: ${APP_URL:-http://localhost:8000}
-      DB_HOST: mysql
-      DB_PORT: ${DB_PORT:-3306}
       APP_SEED: "false"
     command: start-queue
     depends_on:
@@ -37,6 +49,15 @@ services:
 
   nginx:
     build:
+      args:
+          APP_NAME: ${APP_NAME}
+          BROADCAST_CONNECTION: ${BROADCAST_CONNECTION}
+          PUSHER_APP_KEY: ${PUSHER_APP_KEY}
+          PUSHER_APP_CLUSTER: ${PUSHER_APP_CLUSTER}
+          VITE_FIREBASE_API_KEY: ${VITE_FIREBASE_API_KEY}
+          VITE_FIREBASE_AUTH_DOMAIN: ${VITE_FIREBASE_AUTH_DOMAIN}
+          VITE_FIREBASE_PROJECT_ID: ${VITE_FIREBASE_PROJECT_ID}
+          VITE_FIREBASE_STORAGE_BUCKET: ${VITE_FIREBASE_STORAGE_BUCKET}
       context: .
       dockerfile: Dockerfile
       target: nginx
@@ -58,7 +79,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${DB_PASSWORD:-root}"]
+      test: [ "CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${DB_PASSWORD:-root}" ]
       interval: 5s
       timeout: 5s
       retries: 20

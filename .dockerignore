@@ -9,4 +9,5 @@
 /storage/framework/sessions
 /storage/framework/views
 /.env
+/.env.*
 /.phpunit.result.cache

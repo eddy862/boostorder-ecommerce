@@ -1,77 +1,80 @@
-# E-Commerce Web App (Laravel + Vue SPA)
+# 🛒 E-Commerce Web App (Laravel + Vue SPA)
 
-A full-stack e-commerce application built with Laravel for the backend and Vue 3 for the SPA frontend.
-The project now includes a customer storefront, a separate admin panel, email verification, Google login, product image upload to Firebase Storage, cart and checkout flows, and order management for both users and admins.
+A full-stack e-commerce application with Laravel as the backend and Vue 3 as the SPA frontend.
 
-## Table of Contents
+It includes:
+- Customer storefront
+- Admin panel
+- Laravel Breeze authentication
+- Google OAuth login
+- Email verification
+- Firebase Storage image upload
+- Cart and checkout flow
+- User and admin order management
+- Realtime product/order updates via broadcasting
 
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Main Flows](#main-flows)
-- [Run The Project](#run-the-project)
-- [Email Verification / Password Reset Logs](#email-verification--password-reset-logs)
-- [Test Accounts](#test-accounts)
-- [Database Overview](#database-overview)
-- [Current Architecture Notes](#current-architecture-notes)
-- [Future Improvements](#future-improvements)
+## 📚 Table of Contents
 
-## Features
+- [Features](#-features)
+- [Tech Stack](#-tech-stack)
+- [Main Flows](#-main-flows)
+- [Run the Project](#-run-the-project)
+- [Email Verification / Password Reset Logs](#-email-verification--password-reset-logs)
+- [Test Accounts](#-test-accounts)
+- [Database Overview](#-database-overview)
+- [Architecture Notes](#-architecture-notes)
+- [Future Improvements](#-future-improvements)
 
-### Customer Storefront
+## ✨ Features
 
+### 🛍️ Customer Storefront
 - Browse products in a Vue SPA
 - Search products with debounce
-- View product stock and pricing
+- View stock and pricing
 - Adjust quantity with plus/minus controls
 - Add items to cart
-- Use Buy Now for direct checkout flow
-- View uploaded product images
+- Use Buy Now for direct checkout
+- View product images
 
-### Cart and Checkout
-
+### 🛒 Cart & Checkout
 - Session-based cart for guests and logged-in users
 - Update cart quantities
 - Remove items from cart
-- Cart badge in the navbar
+- Navbar cart badge
 - Checkout protected by authentication and email verification
 
-### Authentication
-
-- Register and login with Laravel Breeze
+### 🔐 Authentication
+- Register/login with Laravel Breeze
 - Google OAuth2 login with Socialite
 - Email verification flow
-- Verification notice 
+- Verification notice support
 
-### User Orders
-
+### 📦 User Orders
 - View order history
-- Filter orders by `all`, `pending`, `completed`, and `cancelled`
-- Cancel only pending orders
-- Display purchased item images
+- Filter by `all`, `pending`, `completed`, `cancelled`
+- Cancel pending orders only
+- Show purchased item images
 
-### Admin Panel
-
-- Separate admin layout and navigation
-- Admin login redirects into the admin panel
-- Manage products from `/admin/products`
-- Add, edit, and delete products
-- Upload one image per product to Firebase Storage at `products/<product_id>`
-- Delete Firebase image when the product is deleted
-- Manage orders from `/admin/orders`
-- View pending, cancelled, and completed orders
+### 🛠️ Admin Panel
+- Separate admin layout/navigation
+- Admin login redirects to admin panel
+- Manage products at `/admin/products`
+- Add, edit, delete products
+- Upload one image per product to Firebase path: `products/<product_id>`
+- Delete Firebase image when product is deleted
+- Manage orders at `/admin/orders`
+- View pending/cancelled/completed orders
 - Mark pending orders as completed
 
-### Realtime / UX
-
+### ⚡ Realtime & UX
 - Product list listens for product update broadcasts
 - Order list listens for order status update broadcasts
 - Dynamic page titles for auth pages and SPA routes
 
-## Tech Stack
+## 🧰 Tech Stack
 
 ### Backend
-
-- Laravel 
+- Laravel
 - Laravel Breeze
 - Laravel Socialite
 - Eloquent ORM
@@ -79,68 +82,60 @@ The project now includes a customer storefront, a separate admin panel, email ve
 - Pusher-compatible broadcasting
 
 ### Frontend
-
-- Vue
-- Vue Router
-- Axios
+- Vue 
 - Vite
 - Tailwind CSS
 - Firebase Web SDK
 
 ### External Services
-
 - Google OAuth2
 - Firebase Storage
-- Pusher Channels
+- Pusher Channels (WebSockets)
 
-## Main Flows
+## 🔄 Main Flows
 
-### Customer Flow
-
-```text
-Browse products -> Add to cart / Buy now -> Login for guest user  -> Verify email -> Checkout -> View order history
-```
-
-### Admin Flow
+### 👤 Customer Flow
 
 ```text
-Login as admin -> Redirect to admin panel -> Manage products -> Manage orders
+Browse products -> Add to cart / Buy now -> Login (if guest) -> Verify email -> Checkout -> View order history
 ```
 
-## Run The Project
+### 🧑‍💼 Admin Flow
+
+```text
+Login as admin -> Redirect to admin panel -> Manage products -> Manage orders -> check customer's view
+```
+
+## 🚀 Run the Project
 
 Choose one mode:
-
-- Local mode (PHP + Node running directly on your machine)
-- Docker mode (all services in containers)
+- Local mode (PHP + Node on your machine)
+- Docker mode (services in containers)
 
 Do not run both modes at the same time.
 
-### Local Mode
+### 🖥️ Local Mode
 
 1. Clone and enter the project:
-
 ```bash
 git clone <your-repo-url>
 cd ecommerce
 ```
 
 2. Install dependencies:
-
 ```bash
 composer install
 npm install
 ```
 
-3. Create your env file:
-
+3. Create local env file:
 ```bash
-cp .env.example .env
+cp .env.dev.example .env.dev
 ```
 
-4. Update `.env` for local database and app URL:
-
+4. Update `.env.dev`:
 ```env
+APP_ENV=dev
 APP_URL=http://localhost:8000
 
 DB_CONNECTION=mysql
@@ -172,44 +167,38 @@ VITE_FIREBASE_STORAGE_BUCKET=
 ```
 
 5. Run migrations and seeders:
-
 ```bash
 php artisan migrate:fresh --seed
 ```
 
 6. Start backend and frontend in separate terminals:
-
 ```bash
 php artisan serve
 ```
 
 ```bash
-npm run dev
+npm run dev -- --mode dev
 ```
 
-7. Open the app:
-
+7. Open:
 ```text
 http://localhost:8000
 ```
 
-### Docker Mode
+### 🐳 Docker Mode
 
-This setup includes:
-
+Services included:
 - `nginx` (web server)
 - `app` (Laravel + PHP-FPM)
 - `queue` (Laravel queue worker)
 - `mysql` (database)
 
-1. Create your env file:
-
+1. Create env file:
 ```bash
 cp .env.example .env
 ```
 
-2. Use Docker DB settings in `.env`:
-
+2. Update `.env` with Docker DB settings:
 ```env
 APP_URL=http://localhost:8000
 
@@ -241,76 +230,68 @@ VITE_FIREBASE_STORAGE_BUCKET=
 ```
 
 3. Build and start containers:
-
 ```bash
 docker compose up --build -d
 ```
 
-4. Open the app:
-
+4. Open:
 ```text
 App: http://localhost:8000
 MySQL host port: 3307
 ```
 
 5. Stop containers:
-
 ```bash
 docker compose down
 ```
 
+Optional: remove Docker MySQL volume data:
+```bash
+docker compose down -v
+```
+
 Notes:
+- Frontend assets are built during image build (`npm run build`)
+- App container runs migrations on startup
+- App container seeds on startup when `APP_SEED=true`
 
-- frontend assets are built during Docker image build (`npm run build`)
-- app container runs migrations on startup
-- app container seeds on startup when `APP_SEED=true`
-
-## Email Verification / Password Reset Logs
+## 📩 Email Verification / Password Reset Logs
 
 When `MAIL_MAILER=log`, email links are written to logs.
 
 ### Local Mode
-
-Check:
-
 ```text
 storage/logs/laravel.log
 ```
 
-### Docker Mode (recommended)
-
-Stream logs from the app container:
-
+### Docker Mode 
 ```bash
 docker compose logs -f app
 ```
 
-Then trigger "send verification email" in the app and copy the full URL from the log output into your browser.
+Then trigger a verification/password reset action in the app and copy the full URL from logs into your browser.
 
-Use one host consistently in development. Do not switch between `localhost` and `127.0.0.1`, especially for auth, CSRF, and OAuth callbacks.
+Note: Use one host consistently during development. Do not switch between `localhost` and `127.0.0.1` for auth/callback flows.
 
-## Test Accounts
+## 🧪 Test Accounts
 
 Seeded user:
-
 ```text
 Email: test@example.com
 Password: password
 ```
 
 Seeded admin:
-
 ```text
 Email: admin@example.com
 Password: password
 ```
 
-## Database Overview
+## 🗄️ Database Overview
 
-![database design](./db.drawio.png)
+![Database Design](./db.drawio.png)
 
 ### Users
-
 - google_id
 - name
 - email
@@ -318,8 +299,7 @@ Password: password
 - role
 - email_verified_at
 
-### Products (Soft-delete)
-
+### Products (Soft Delete)
 - name
 - description
 - price
@@ -329,30 +309,28 @@ Password: password
 - is_delete
 
 ### Orders
-
 - user_id
 - total_price
 - status
 
 ### Order Items
-
 - order_id
 - product_id
 - quantity
 - price
 
-## Current Architecture Notes
+## 🏗️ Architecture Notes
 
-- Laravel handles auth, sessions, validation, database access, order creation, and admin authorization
-- Vue handles storefront pages, cart UI, order UI, and admin SPA pages
+- Laravel handles authentication, session, validation, database access, order creation, and admin authorization
+- Vue handles storefront pages, cart UI, orders UI, and admin SPA pages
 - Cart data is stored in Laravel session
-- Product images are stored in Firebase Storage, while only the image URL is stored in the database
-- Product and order status updates are broadcasted using Pusher so the storefront can refresh in near real time
+- Product images are stored in Firebase Storage, while only image URL is stored in the database
+- Product and order updates are broadcasted via Pusher for near real-time refresh
 
-## Future Improvements
+## 🧭 Future Improvements
 
 - Product pagination and admin search/filter tools
 - Better toast notifications instead of `alert()` / `confirm()`
 - Payment gateway integration
-- Dashboard metrics for admins
+- Admin dashboard metrics
 - Automated tests for admin/product/order flows

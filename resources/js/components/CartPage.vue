@@ -127,7 +127,7 @@ export default {
 
     increase(item) {
       const current = this.pendingQuantities[item.id] !== undefined ? this.pendingQuantities[item.id] : item.quantity
-      this.pendingQuantities[item.id] = current + 1
+      this.pendingQuantities[item.id] = Number(current) + 1
 
       if (this.decreaseDebounceTimers[item.id]) {
         clearTimeout(this.decreaseDebounceTimers[item.id])
@@ -146,16 +146,16 @@ export default {
         this.increaseDebounceTimers[item.id] = null
         setTimeout(() => {
           delete this.pendingQuantities[item.id]
-        }, 500)
+        }, 1000)
         window.dispatchEvent(new Event('cart-updated'))
-      }, 400)
+      }, 1000)
     },
 
     decrease(item) {
       if (item.quantity <= 1 && (!this.pendingQuantities || this.pendingQuantities[item.id] <= 1)) return
 
       const current = this.pendingQuantities[item.id] !== undefined ? this.pendingQuantities[item.id] : item.quantity
-      const next = current - 1
+      const next = Number(current) - 1
       if (next < 1) return
       this.pendingQuantities[item.id] = next
 
@@ -175,9 +175,9 @@ export default {
         this.decreaseDebounceTimers[item.id] = null
         setTimeout(() => {
           delete this.pendingQuantities[item.id]
-        }, 500)
+        }, 1000)
         window.dispatchEvent(new Event('cart-updated'))
-      }, 400)
+      }, 1000)
     },
 
     async remove(item) {
